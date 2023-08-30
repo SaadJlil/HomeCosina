@@ -1,2 +1,4 @@
 dataset/
 /classify2.py
+.env
+src/Config/firebase.js
