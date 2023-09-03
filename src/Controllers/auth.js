@@ -1,38 +1,32 @@
-
-
+const TryCatchErrorsDecorator = require('./../Decorators/TryCatchErrorsDecorator');
+const ClientError = require('./../Exceptions/ClientError')
 const firebase = require("./../Config/firebase")
+const AuthService = require('./../Services/Auth')
+const UserService = require('./../Services/User')
 
 
 
 class AuthController {
-    static async signup(req, res) {
-        if (!req.body.email || !req.body.password) {
-            return res.status(422).json("email and password required");
-        }
-        firebase
-            .auth()
-            .createUserWithEmailAndPassword(req.body.email, req.body.password)
-            .then((data) => {
-                return res.status(201).json(data);
-            })
-            .catch(function (error) {
-                let errorCode = error.code;
-                let errorMessage = error.message;
-                if (errorCode == "auth/weak-password") {
-                    return res.status(500).json({ error: errorMessage });
-                } else {
-                    return res.status(500).json({ error: errorMessage });
-                }
-            });
+
+    @TryCatchErrorsDecorator
+    static async signup(req, res, next) {
+
+        //basically firebase
+        AuthService.SignUpUserService(req.body.email, req.body.password, next);
+
+
+        //Add use to the postgres database (no passowrd etc...) 
+        UserService.AddUserDatabase(req.body.username, req.body.email, next)
+
+        res.json('success');
     }
 
-    static async signin(req, res) {
-        if (!req.body.email || !req.body.password) {
-            return res.status(422).json({
-              email: "email is required",
-              password: "password is required",
-            });
-        }
+
+
+
+    @TryCatchErrorsDecorator
+    static async signin(req, res, next) {
+
         firebase
             .auth()
             .signInWithEmailAndPassword(req.body.email, req.body.password)
@@ -42,12 +36,9 @@ class AuthController {
             .catch(function (error) {
                 let errorCode = error.code;
                 let errorMessage = error.message;
-                if (errorCode === "auth/wrong-password") {
-                    return res.status(500).json({ error: errorMessage });
-                } else {
-                    return res.status(500).json({ error: errorMessage });
-                }
-            });
+                throw new ClientError(errorMessage, errorCode);
+           });
+
     }
 }
 
