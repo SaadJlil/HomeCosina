@@ -1,22 +1,19 @@
 const TryCatchErrorsDecorator = require('./../Decorators/TryCatchErrorsDecorator');
 const AppError = require("./../Exceptions/AppError")
 const prisma = require('./../Config/Prisma')
+const UserDataAccess = require('./../DataAccess/UserDataAccess')
+const AuthService = require('./Auth')
 
 
 class UserService {
-    @TryCatchErrorsDecorator
-    static async AddUserDatabase(Username, Email, next){
+    static async AddUserDatabase(Username, Email, uuid){
         try{
             //DATAACCESS LAYER 
-            await prisma.user.create({
-                data: {
-                    email: Email,
-                    username: Username 
-                },
-            });
+            await UserDataAccess.CreateUser(Email, Username);
         }
         catch(e){
-            throw new AppError(e.message, 500)
+            await AuthService.DeleteUserAccount(uuid);
+            throw new AppError(e.message, 500);
         }
 
     }

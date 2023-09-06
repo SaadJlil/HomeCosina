@@ -10,8 +10,8 @@ router.get("/whatever", (req, res, next) => {
     res.json("hello");
     next();
 });
-router.post("/signin", AuthController.signin);
-router.post("/signup", AuthMiddleware.VerifyEmailPassw, AuthController.signup);
+router.post("/signin", AuthMiddleware.VerifyEmailPasswSignIn, AuthController.signin);
+router.post("/signup", AuthMiddleware.VerifyEmailPasswSignUp, AuthController.signup);
 
 
 

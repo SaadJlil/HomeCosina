@@ -1,27 +1,4 @@
-
-
-
 const prisma = require('./../Config/Prisma')
-
-
-
-/*
-
-        await prisma.user.create({
-            data: {
-              name: 'Saad',
-              email: 'sailjlad@prisma.io',
-              posts: {
-                create: { title: 'Hello World' },
-              },
-              profile: {
-                create: { bio: 'I like turtles' },
-              },
-            },
-        });
-*/
-
-
 
 
 class UserDataAccess{
@@ -38,6 +15,14 @@ class UserDataAccess{
         });
 
         return !!EmailExists;
+    }
+    static async CreateUser(Email, Username){
+      await prisma.user.create({
+          data: {
+            email: Email,
+            username: Username 
+        },
+      });
     }
 }
 
