@@ -6,12 +6,13 @@ const AuthMiddleware = require('../Middleware/AuthMiddleware');
 const router = express.Router();
 
 
-router.get("/whatever", (req, res, next) => {
+router.get("/whatever", AuthMiddleware.Authorize, (req, res, next) => {
     res.json("hello");
     next();
 });
 router.post("/signin", AuthMiddleware.VerifyEmailPasswSignIn, AuthController.signin);
 router.post("/signup", AuthMiddleware.VerifyEmailPasswSignUp, AuthController.signup);
+//router.delete("/deleteAccount", AuthMiddleware.VerifyEmailPasswSignUp, AuthController.signup);
 
 
 

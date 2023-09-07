@@ -1,6 +1,8 @@
 const emailValidator = require('./../Services/ValidateEmail');
 const TryCatchErrorsDecorator = require('./../Decorators/TryCatchErrorsDecorator');
 const passwordValid = require('../Services/ValidatePassword');
+const firebase = require("../Config/firebaseClient");
+const AuthService = require("../Services/Auth");
 
 const ClientError = require('../Exceptions/ClientError');
 const UserDataAccess = require('./../DataAccess/UserDataAccess');
@@ -36,8 +38,6 @@ class AuthMiddleware{
         if(EmailExists){
             throw new ClientError("The email used is already taken", 409);
         }
-
-        console.log('here')
 
         return next();
 
@@ -75,6 +75,34 @@ class AuthMiddleware{
         return next();
 
     }
+
+    @TryCatchErrorsDecorator
+    static async Authorize(req, res, next){
+        if (req.headers.authorization) {
+            const token = req.headers.authorization.split(" ")[1];
+      
+            if (!token) {
+              throw new ClientError("Access token not found in request", 400);
+            }
+            console.log(token)
+      
+            const verifyData = await AuthService.verifyAccessToken(token);
+            console.log(verifyData);
+      
+            if (!verifyData) {
+              throw new ClientError("Refresh token invalid or expired", 401);
+            }
+      
+            req.userId = verifyData.id;
+            return res.json('success')
+
+            //return next();
+          }
+      
+          throw new ClientError("Unauthorized", 401);
+
+   }
+
 }
 
 

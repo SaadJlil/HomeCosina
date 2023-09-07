@@ -2,7 +2,8 @@ const TryCatchErrorsDecorator = require('./../Decorators/TryCatchErrorsDecorator
 const firebase = require("../Config/firebaseClient")
 const AppError = require("./../Exceptions/AppError")
 const ClientError = require("./../Exceptions/ClientError")
-const admin = require('./../Config/firebaseServer')
+const admin = require('./../Config/firebaseServer');
+const { user } = require('../Config/Prisma');
 
 
 class AuthService {
@@ -40,6 +41,21 @@ class AuthService {
         } catch(error){
             throw new ClientError("Problem with Email or Password", 400);
         }
+    }
+
+    static async verifyAccessToken(token){
+        const userCred = await firebase 
+            .auth()
+            .signInWithCustomToken(token)
+            .catch((error) => {
+                var errorCode = error.code;
+                var errorMessage = error.message;
+                console.log(errorMessage);
+            });
+        
+        return { id: userCred.user.uid };
+ 
+
     }
 }
 
