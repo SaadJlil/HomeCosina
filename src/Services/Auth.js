@@ -50,12 +50,42 @@ class AuthService {
             .catch((error) => {
                 var errorCode = error.code;
                 var errorMessage = error.message;
-                console.log(errorMessage);
+                throw new ClientError(errorMessage, errorCode);
             });
         
         return { id: userCred.user.uid };
- 
+    }
 
+    static async CreateJwtToken(uid){
+        try {
+            const payload = {
+                id: user._id
+            };
+
+            const options = {
+                algorithm: "HS512",
+                subject: user._id.toString(),
+                expiresIn: config.expireAccess
+            };
+
+            const token = await sign(payload, config.secretAccess, options);
+
+            return token;
+        } catch (err) {
+            throw new AppError(err.message);
+        }
+   }
+
+
+    static async CreateToken(uid){
+        const token = await admin
+            .auth()
+            .createCustomToken(uid)
+            .catch((error) => {
+                throw new AppError('Error creating custom token', 500);
+            });
+
+        return token;
     }
 }
 

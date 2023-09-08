@@ -21,16 +21,7 @@ class AuthController {
 
         const uid = user.user.uid;
 
-        await admin
-            .auth()
-            .createCustomToken(uid)
-            .then((customToken) => {
-                res.json(customToken);
-            })
-            .catch((error) => {
-                throw new AppError('Error creating custom token', 500);
-            });
-        
+        res.json(AuthService.CreateToken(uid));
 
     }
 
@@ -40,17 +31,10 @@ class AuthController {
         const user = await AuthService.SignInUserService(req.body.email, req.body.password);
         const uid = user.user.uid;
 
-        await admin
-            .auth()
-            .createCustomToken(uid)
-            .then((customToken) => {
-                res.json(customToken);
-            })
-            .catch((error) => {
-                throw new AppError('Error creating custom token', 500);
-            });
 
-   }
+        res.json(AuthService.CreateToken(uid));
+
+    }
 }
 
 

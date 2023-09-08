@@ -84,17 +84,14 @@ class AuthMiddleware{
             if (!token) {
               throw new ClientError("Access token not found in request", 400);
             }
-            console.log(token)
       
             const verifyData = await AuthService.verifyAccessToken(token);
-            console.log(verifyData);
       
             if (!verifyData) {
               throw new ClientError("Refresh token invalid or expired", 401);
             }
       
             req.userId = verifyData.id;
-            return res.json('success')
 
             //return next();
           }
