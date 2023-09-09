@@ -9,7 +9,7 @@ class UserService {
     static async AddUserDatabase(Username, Email, uuid){
         try{
             //DATAACCESS LAYER 
-            await UserDataAccess.CreateUser(Email, Username);
+            await UserDataAccess.CreateUser(uuid, Email, Username);
         }
         catch(e){
             await AuthService.DeleteUserAccount(uuid);

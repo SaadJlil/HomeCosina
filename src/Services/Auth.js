@@ -74,8 +74,7 @@ class AuthService {
         } catch (err) {
             throw new AppError(err.message);
         }
-   }
-
+    }
 
     static async CreateToken(uid){
         const token = await admin
@@ -84,7 +83,7 @@ class AuthService {
             .catch((error) => {
                 throw new AppError('Error creating custom token', 500);
             });
-
+        
         return token;
     }
 }

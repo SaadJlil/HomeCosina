@@ -1,8 +1,10 @@
 const emailValidator = require('./../Services/ValidateEmail');
 const TryCatchErrorsDecorator = require('./../Decorators/TryCatchErrorsDecorator');
 const passwordValid = require('../Services/ValidatePassword');
+const usernameValidator = require('../Services/ValidateUsername');
 const firebase = require("../Config/firebaseClient");
 const AuthService = require("../Services/Auth");
+const TokenService = require("../Services/TokenService");
 
 const ClientError = require('../Exceptions/ClientError');
 const UserDataAccess = require('./../DataAccess/UserDataAccess');
@@ -12,32 +14,25 @@ const UserDataAccess = require('./../DataAccess/UserDataAccess');
 
 class AuthMiddleware{
     @TryCatchErrorsDecorator
-    static async VerifyEmailPasswSignUp(req, res, next){
+    static async ValidateSignUp(req, res, next){
 
-        if (!req.body.email ) {
+        if (!req.body.email) {
             throw new ClientError("Email is required", 400);
         }
 
-        if (!req.body.password ) {
+        if (!req.body.password) {
             throw new ClientError("Password is required", 400);
         }  
-
-        const EmailValid = emailValidator(req.body.email);
-        if(!EmailValid){
-            throw new ClientError("The email used is not valid", 400);
-        }
-
-
-        const PasswordValid = passwordValid(req.body.password);
-        if(PasswordValid.isError){
-            throw PasswordValid.Error;
-        }
         
-        const EmailExists = await UserDataAccess.UserEmailExists(req.body.email);
+        if (!req.body.username) {
+            throw new ClientError("Username is required", 400);
+        }  
 
-        if(EmailExists){
-            throw new ClientError("The email used is already taken", 409);
-        }
+        await emailValidator.signUp(req.body.email);
+
+        await passwordValid(req.body.password);
+
+        await usernameValidator(req.body.username)
 
         return next();
 
@@ -51,24 +46,16 @@ class AuthMiddleware{
             throw errorC;
         }
 
+
         if (!req.body.password ) {
             throw errorC;
         }  
 
-        const EmailValid = emailValidator(req.body.email);
-        if(!EmailValid){
-            throw errorC;
+        try{
+            await emailValidator.signIn(req.body.email);
+            await passwordValid(req.body.password);
         }
-
-
-        const PasswordValid = passwordValid(req.body.password);
-        if(PasswordValid.isError){
-            throw errorC;
-        }
-        
-        const EmailExists = await UserDataAccess.UserEmailExists(req.body.email);
-
-        if(!EmailExists){
+        catch(error){
             throw errorC;
         }
 
@@ -85,7 +72,9 @@ class AuthMiddleware{
               throw new ClientError("Access token not found in request", 400);
             }
       
-            const verifyData = await AuthService.verifyAccessToken(token);
+            //const verifyData = await AuthService.verifyAccessToken(token);
+            const verifyData = await TokenService.verifyAccessToken(token);
+            console.log(verifyData);
       
             if (!verifyData) {
               throw new ClientError("Refresh token invalid or expired", 401);
