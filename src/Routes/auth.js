@@ -12,6 +12,7 @@ router.get("/whatever", AuthMiddleware.Authorize, (req, res, next) => {
 });
 router.post("/signin", AuthMiddleware.VerifyEmailPasswSignIn, AuthController.signin);
 router.post("/signup", AuthMiddleware.ValidateSignUp, AuthController.signup);
+router.post("/logout", AuthMiddleware.Authorize, AuthController.logout);
 //router.delete("/deleteAccount", AuthMiddleware.VerifyEmailPasswSignUp, AuthController.signup);
 
 

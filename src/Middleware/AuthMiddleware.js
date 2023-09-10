@@ -74,15 +74,11 @@ class AuthMiddleware{
       
             //const verifyData = await AuthService.verifyAccessToken(token);
             const verifyData = await TokenService.verifyAccessToken(token);
-            console.log(verifyData);
-      
-            if (!verifyData) {
-              throw new ClientError("Refresh token invalid or expired", 401);
-            }
       
             req.userId = verifyData.id;
+            req.refreshTokenId = verifyData.refreshId;
 
-            //return next();
+            return next();
           }
       
           throw new ClientError("Unauthorized", 401);

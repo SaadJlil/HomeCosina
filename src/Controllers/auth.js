@@ -43,6 +43,15 @@ class AuthController {
 
         res.json({accessToken, refreshToken: refreshToken.token});
     }
+
+    @TryCatchErrorsDecorator
+    static async logout(req, res, next) {
+
+        await TokenService.removeRefreshTokenUser(req.userId, req.refreshTokenId);
+
+        res.json("You have been successfully logged out.");
+    }
+
 }
 
 

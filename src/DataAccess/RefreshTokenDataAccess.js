@@ -29,7 +29,25 @@ class RefreshTokenDataAccess{
         }catch(error){
             throw AppError("Couldn't add refreshToken to database", 500);
         }
+
+
     }
+
+
+    static async removeRefreshTokenUser(userId, tokenId){
+        try {
+            const result = await prisma.RefreshToken.delete({
+                where: {
+                    id: tokenId,
+                    userId: userId
+                }
+            });
+        }
+        catch(err){
+            throw new ClientError("Wrong token", 400);
+        }
+    }
+
 }
 
 

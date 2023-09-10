@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const config = require("../Config/token");
 const AppError = require("../Exceptions/AppError");
 const RefreshTokenDataAccess = require("../DataAccess/RefreshTokenDataAccess");
+const ClientError = require("../../dist/Exceptions/ClientError");
 
 
 
@@ -82,21 +83,8 @@ class TokenService{
     }
   };
 
-  static async removeRefreshTokenUser(user, token){
-    try {
-      const refreshTokenId = token.split("::")[0];
-
-      const refreshTokensFiltered = user.refreshTokens.filter(refreshToken => {
-        return refreshToken._id.toString() !== refreshTokenId.toString();
-      });
-
-      user.refreshTokens = refreshTokensFiltered;
-      await user.save();
-
-      return true;
-    } catch (err) {
-      throw new AppError(err.message);
-    }
+  static async removeRefreshTokenUser(userId, tokenId){
+    await RefreshTokenDataAccess.removeRefreshTokenUser(userId, tokenId);
   };
 
   static async verifyRefreshToken(token){
@@ -107,8 +95,9 @@ class TokenService{
 
       return data;
     } catch (err) {
-      return false;
+      throw new ClientError("Refresh Toke");
     }
+
   };
 
   static async verifyAccessToken(token){
@@ -117,7 +106,7 @@ class TokenService{
 
       return data;
     } catch (err) {
-      return false;
+      throw ClientError("Refresh token invalid or expired", 401)
     }
   };
 
