@@ -5,24 +5,29 @@ const ClientError = require("../Exceptions/ClientError");
 const config = require("../Config/app");
 
 module.exports = function(err, req, res, next) {
-    const status = err.status || 500;
+    const status = err.code || 500;
     const httpError = httpErrors(status);
-    const errorMessage = err.message || "Unknown error";
+    const errorMessage = err.errorMessage || "Unknown error";
+    const errorType = err.errorType || "Unknown ErrorType";
     const response = { code: status };
 
+    Object.assign(response, { success: err.success});
+    Object.assign(response, { errorType: errorType});
+
     if (err instanceof ValidationError) {
-    Object.assign(response, { message: httpError.message });
-    Object.assign(response, { errorValidation: err.validationErrors });
+        Object.assign(response, { httpErrorMessage: httpError.message });
+        Object.assign(response, { errorMessage : errorMessage });
     } else if (err instanceof ClientError) {
-    Object.assign(response, { message: errorMessage });
-    //logger.info(errorMessage, { url: req.originalUrl, method: req.method });
+        Object.assign(response, { httpErrorMessage: httpError.message });
+        Object.assign(response, { message: errorMessage });
+        //logger.info(errorMessage, { url: req.originalUrl, method: req.method });
     } else {
-    Object.assign(response, { message: httpError.message });
-    //logger.error(err.stack, { url: req.originalUrl, method: req.method });
+        Object.assign(response, { message: httpError.message });
+        //logger.error(err.stack, { url: req.originalUrl, method: req.method });
     }
 
     if (config.isDev) {
-    Object.assign(response, { error: err.stack });
+    Object.assign(response, { errorStack: err.stack });
     }
 
     res.status(status);

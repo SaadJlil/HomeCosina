@@ -2,6 +2,18 @@ const prisma = require('./../Config/Prisma')
 
 
 class UserDataAccess{
+
+    static async GetUserById(Id){
+
+        const User = await prisma.User.findFirst({
+            where: {
+                id: Id
+            }
+        });
+
+        return User;
+    }
+
     static async UserEmailExists(Email){
 
         const EmailExists = await prisma.User.findFirst({

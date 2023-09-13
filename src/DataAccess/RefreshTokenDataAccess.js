@@ -1,18 +1,47 @@
-const AppError = require('../../dist/Exceptions/AppError');
-const prisma = require('./../Config/Prisma')
+const AppError = require('./../Exceptions/AppError');
+const prisma = require('./../Config/Prisma');
+const ClientError = require('./../Exceptions/ClientError');
 
 
 class RefreshTokenDataAccess{
-    static async UsernameExists(Username){
+    static async refreshTokenUserExists(userId, tokenId){
 
-        const UsernameExists = await prisma.User.findFirst({
-            where: {
-                username: Username 
-            }
-        });
+        try{
+            const TokenExists = await prisma.RefreshToken.findFirst({
+                where: {
+                    id: tokenId,
+                    userId: userId
+                }
+            });
+            return !!TokenExists;
+        }
+        catch(err){
+            throw new AppError(err.message, 500);
+        }
 
-        return !!UsernameExists;
     }
+
+
+    static async getUserRefreshTokens(userId){
+
+        try{
+            const refreshTokens = await prisma.User.findFirst({
+                where: {
+                    id: userId
+                },
+                select: {
+                    refreshToken: true
+                }
+            });
+
+            return refreshTokens;
+        }
+        catch(err){
+            throw new AppError(err.message, 500);
+        }
+
+    }
+
 
 
     static async createRefreshToken(token, userId){
@@ -45,6 +74,20 @@ class RefreshTokenDataAccess{
         }
         catch(err){
             throw new ClientError("Wrong token", 400);
+        }
+    }
+
+
+    static async removeRefreshTokenById(tokenId){
+        try {
+            const result = await prisma.RefreshToken.delete({
+                where: {
+                    id: tokenId,
+                }
+            });
+        }
+        catch(err){
+            throw new AppError("Can't delete RefreshToken", 500);
         }
     }
 

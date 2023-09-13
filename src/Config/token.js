@@ -13,14 +13,19 @@ const expireRefresh = process.env.EXPIRE_TOKEN_REFRESH;
 const secretRestore = process.env.SECRET_TOKEN_RESTORE_PASSWORD;
 const expireRestore = process.env.EXPIRE_TOKEN_RESTORE_PASSWORD;
 
-const countTokenLimit = process.env.TOKEN_LIMIT_COUNT_DIVICE;
+const secretEmail = process.env.SECRET_TOKEN_EMAIL;
+const expireEmail = process.env.EXPIRE_TOKEN_EMAIL;
+
+const limitNumberRefreshTokens = process.env.LIMIT_NUMBER_REFRESHTOKENS;
 
 module.exports = {
+  expireEmail,
+  secretEmail,
   secretAccess,
   expireAccess,
   secretRefresh,
   expireRefresh,
-  countTokenLimit,
   secretRestore,
-  expireRestore
+  expireRestore,
+  limitNumberRefreshTokens 
 };

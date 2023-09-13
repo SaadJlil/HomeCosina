@@ -72,7 +72,6 @@ class AuthMiddleware{
               throw new ClientError("Access token not found in request", 400);
             }
       
-            //const verifyData = await AuthService.verifyAccessToken(token);
             const verifyData = await TokenService.verifyAccessToken(token);
       
             req.userId = verifyData.id;
