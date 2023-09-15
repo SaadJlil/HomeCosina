@@ -3,6 +3,8 @@ const ClientError = require('./../Exceptions/ClientError')
 const firebase = require("../Config/firebaseClient")
 const AuthService = require('./../Services/Auth')
 const TokenService = require('./../Services/TokenService')
+const emailConfig = require("../Config/email");
+const EmailService = require('./../Services/EmailService')
 const UserService = require('./../Services/User')
 const admin = require('./../Config/firebaseServer');
 const AppError = require('./../Exceptions/AppError');
@@ -21,17 +23,19 @@ class AuthController {
         const userData = await AuthService.SignUpUserService(req.body.email, req.body.password);
 
         const userId = userData.user.uid
+        const userEmail = req.body.email
+        const username = req.body.username
 
         //Add use to the postgres database (no passowrd etc...) 
-        await UserService.AddUserDatabase(req.body.username, req.body.email, userId)
+        await UserService.AddUserDatabase(username, userEmail, userId)
 
         const refreshToken = await TokenService.createRefreshToken(userId);
         const accessToken = await TokenService.createAccessToken(userId, refreshToken.id);
 
-        const link = "http://localhost:3000/api/email-confirmation=" + await TokenService.createEmailToken(userId);
+        const confirmationLink = emailConfig.emailConfirmationLink + await TokenService.createEmailToken(userId);
+        EmailService.sendConfirmationEmail(userEmail, username, confirmationLink);
 
-
-        res.json(new successResponse({accessToken, refreshToken, link}));
+        res.json(new successResponse({accessToken, refreshToken}));
     }
 
 
@@ -74,6 +78,10 @@ class AuthController {
         const refreshToken = await TokenService.createRefreshToken(uid);
         const accessToken = await TokenService.createAccessToken(uid, refreshToken.split("::")[0]);
 
+        const email = req.body.email;
+        
+        EmailService.sendConfirmationEmail(email, req.body.username, "www.pornhub.com");
+
         res.json(new successResponse({ accessToken, refreshToken }));
     }
 
@@ -88,7 +96,13 @@ class AuthController {
 
     @TryCatchErrorsDecorator
     static async emailConfirmation(req, res, next) {
-      res.json(await TokenService.verifyEmailToken(req.params.token));
+      const data = await TokenService.verifyEmailToken(req.params.token);
+      const userId = data.id;
+
+      await UserDataAccess.confirmEmailById(userId);
+
+      res.json(new successResponse("Your email has been confirmed!"));
+      
     }
 
 

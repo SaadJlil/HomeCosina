@@ -1,3 +1,5 @@
+const AppError = require('../../dist/Exceptions/AppError');
+const ClientError = require('../../dist/Exceptions/ClientError');
 const prisma = require('./../Config/Prisma')
 
 
@@ -14,6 +16,26 @@ class UserDataAccess{
         return User;
     }
 
+
+    static async confirmEmailById(userId){
+        try{
+            await prisma.User.update({
+                where: {
+                    id: userId,
+                },
+                data: {
+                    emailconfirmed: true,
+                },
+            });
+        }
+        catch(err){
+            throw new AppError("Can't confirm the user email");
+        }
+
+    }
+
+
+
     static async UserEmailExists(Email){
 
         const EmailExists = await prisma.User.findFirst({
@@ -23,6 +45,7 @@ class UserDataAccess{
         });
 
         return !!EmailExists;
+
     }
 
     static async UsernameExists(Username){

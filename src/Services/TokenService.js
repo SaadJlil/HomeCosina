@@ -104,12 +104,11 @@ class TokenService{
 
   static async verifyEmailToken(token){
     try {
-      console.log(token);
       const data = await jwt.verify(token, config.secretEmail);
 
       return data;
     } catch (err) {
-      throw new ClientError("Refresh token invalid or expired", 400);
+      throw new ClientError("Wrong email confirmation link", 400);
     }
   }
 
