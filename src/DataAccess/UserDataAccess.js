@@ -34,6 +34,23 @@ class UserDataAccess{
 
     }
 
+    static async userEmailConfirmed(userId){
+        try{
+            const userExists = await prisma.User.findFirst({
+                where: {
+                    id: userId,
+                    emailconfirmed: true
+                }
+            });
+
+            return !!userExists;
+
+   
+        }
+        catch(err){
+            throw new AppError("Can't confirm if email is confirmed");
+        }
+    }
 
 
     static async UserEmailExists(Email){

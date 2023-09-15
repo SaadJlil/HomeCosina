@@ -64,25 +64,39 @@ class AuthMiddleware{
     }
 
     @TryCatchErrorsDecorator
-    static async Authorize(req, res, next){
+    static async AuthorizeAccess(req, res, next){
         if (req.headers.authorization) {
             const token = req.headers.authorization.split(" ")[1];
-      
+        
             if (!token) {
-              throw new ClientError("Access token not found in request", 400);
+                throw new ClientError("Access token not found in request", 400);
             }
-      
+        
             const verifyData = await TokenService.verifyAccessToken(token);
-      
+        
             req.userId = verifyData.id;
             req.refreshTokenId = verifyData.refreshId;
 
-            return next();
-          }
-      
-          throw new ClientError("Unauthorized", 401);
+            if(req.emailConfirmation){
+                const emailConfirmed = await UserDataAccess.userEmailConfirmed(verifyData.id);
+                if(!emailConfirmed){
+                    throw new ClientError("Unauthorized: Email is not confirmed", 409);
+                }
+            }
 
-   }
+            return next();
+        }
+        
+        throw new ClientError("Unauthorized", 401);
+
+    }
+ 
+    static Authorize(emailConfirmation = true){
+        return async (req, res, next) => {
+            req.emailConfirmation = emailConfirmation;
+            await this.AuthorizeAccess(req, res, next);
+        }
+    }
 
 }
 

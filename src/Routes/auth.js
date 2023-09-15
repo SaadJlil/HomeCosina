@@ -12,7 +12,7 @@ router.get("/whatever", AuthMiddleware.Authorize, (req, res, next) => {
 });
 router.post("/signin", AuthMiddleware.VerifyEmailPasswSignIn, AuthController.signin);
 router.post("/signup", AuthMiddleware.ValidateSignUp, AuthController.signup);
-router.post("/logout", AuthMiddleware.Authorize, AuthController.logout);
+router.post("/logout", AuthMiddleware.Authorize(false), AuthController.logout);
 router.post("/refresh-token", AuthController.refreshTokens);
 router.get('/email-confirmation=:token', AuthController.emailConfirmation);
   
