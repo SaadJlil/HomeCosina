@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const config = require("../Config/token");
 const AppError = require("../Exceptions/AppError");
 const RefreshTokenDataAccess = require("../DataAccess/RefreshTokenDataAccess");
-const ClientError = require("../../dist/Exceptions/ClientError");
+const ClientError = require("../Exceptions/ClientError");
 
 
 

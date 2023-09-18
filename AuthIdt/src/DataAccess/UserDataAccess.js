@@ -1,5 +1,5 @@
-const AppError = require('../../dist/Exceptions/AppError');
-const ClientError = require('../../dist/Exceptions/ClientError');
+const AppError = require('./../Exceptions/AppError');
+const ClientError = require('./../Exceptions/ClientError');
 const prisma = require('./../Config/Prisma')
 
 
