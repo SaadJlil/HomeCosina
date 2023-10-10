@@ -78,10 +78,6 @@ class AuthController {
         const refreshToken = await TokenService.createRefreshToken(uid);
         const accessToken = await TokenService.createAccessToken(uid, refreshToken.split("::")[0]);
 
-        const email = req.body.email;
-        
-        EmailService.sendConfirmationEmail(email, req.body.username, "www.pornhub.com");
-
         res.json(new successResponse({ accessToken, refreshToken }));
     }
 

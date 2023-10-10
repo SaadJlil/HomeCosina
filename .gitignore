@@ -1,6 +1,6 @@
 AuthIdt/dataset/
 AuthIdt/classify2.py
 AuthIdt/.env
-AuthIdt/src/Config/firebase.js
 AuthIdt/homecosina-862e2-firebase-adminsdk-v6d15-7153de3f81.json
-
+Mvp/dataset/
+Mvp/.env

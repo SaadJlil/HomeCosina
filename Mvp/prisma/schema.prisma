@@ -1,0 +1,63 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model Recipe {
+  recipe_id String @id @default(uuid())
+  steps String[]
+  date DateTime @default(now())
+  userid  String 
+  title String
+  link String[]
+  cookingtime_min Int
+  views Int @default(0)
+  votes Int @default(0)
+  imageurl String?
+  ingredients IngredientsOnRecipes[]
+}
+
+model Ingredient {
+  
+  ingredient_name String @id
+  calories Float 
+  total_fat Float 
+  sat_fat Float 
+  protein Float 
+  sodium Float 
+  potassium Float 
+  cholesterol Float 
+  carbohydrates Float 
+  fiber Float
+  sugar Float
+  category String
+  imageurl String
+  recipes IngredientsOnRecipes[]
+}
+
+model IngredientsOnRecipes {
+  recipe Recipe @relation(fields: [recipeid], references: [recipe_id])
+  recipeid String 
+  ingredient Ingredient @relation(fields: [ingid], references: [ingredient_name])
+  ingid String 
+
+  presentedstring String?
+  unit String?
+  value Int?
+  valueingram Float?
+
+  @@id([recipeid, ingid])
+}
+
+model Tag {
+  tag_id String @id @default(uuid())
+  type String 
+  refid String
+  tag String
+}
