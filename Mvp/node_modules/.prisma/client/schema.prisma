@@ -21,6 +21,10 @@ model Recipe {
   votes Int @default(0)
   imageurl String?
   ingredients IngredientsOnRecipes[]
+
+  tag_nb Int
+  ing_nb Int
+
 }
 
 model Ingredient {

@@ -73,6 +73,11 @@ class RecipeDataAccess{
                 }
                 GROUP BY recipe.recipe_id
             `
+
+            if(Recipe.length === 0){
+                throw new ClientError('Recipe does not exist', 404);
+            }
+
             return Recipe[0];
 
         } catch (error) {
@@ -88,7 +93,7 @@ class RecipeDataAccess{
             
             const type = 'recipe'
             const measurements = [];
-            
+
             for (let i = 0; i < recipeData.ingredients_id.length; i++) {
                 measurements.push({
                     ing_id: recipeData.ingredients_id[i],
@@ -99,6 +104,10 @@ class RecipeDataAccess{
                 });
 
             }
+
+            const all_tags = [...new Set(recipeData.tags.concat(recipeData.title.split(' ')))];
+            console.log(all_tags)
+
 
             const regEx_onlyLettersAndSpace = /^[A-Za-z\s]*$/;
 
@@ -124,7 +133,6 @@ class RecipeDataAccess{
             END $$;`;
 
 
-
             await prisma.$transaction([
                 prisma.$executeRawUnsafe(ingsExistQuery),
                 prisma.$executeRaw`
@@ -135,7 +143,9 @@ class RecipeDataAccess{
                             imageurl,
                             steps,
                             cookingtime_min,
-                            link
+                            link,
+                            tag_nb,
+                            ing_nb
                         )
                     VALUES (
                             ${Prisma.join([   
@@ -146,6 +156,8 @@ class RecipeDataAccess{
                                 Prisma.sql`ARRAY[${Prisma.join(recipeData.steps)}]`,
                                 Prisma.sql`${recipeData.cookingtime_min}`,
                                 Prisma.sql`ARRAY[${Prisma.join(recipeData.link)}]`,
+                                Prisma.sql`${all_tags.length}`,
+                                Prisma.sql`${recipeData.ingredients_id.length}`
                            ])}
                         )
                 `,
@@ -190,7 +202,7 @@ class RecipeDataAccess{
                             tag
                         )
                     VALUES ${Prisma.join(
-                        recipeData.tags.map((tag) => (
+                        all_tags.map((tag) => (
                             Prisma.sql`
                                 (
                                     ${
@@ -199,7 +211,7 @@ class RecipeDataAccess{
                                                 Prisma.sql`${uuidv4()}`,
                                                 Prisma.sql`${type}`,
                                                 Prisma.sql`${recipe_id}`,
-                                                Prisma.sql`${tag}`
+                                                Prisma.sql`${tag.toLowerCase()}`
                                             ]
                                         )
                                     }
@@ -213,6 +225,7 @@ class RecipeDataAccess{
             return recipe_id;
 
         } catch (error) {
+            console.log(error)
             throw new AppError("Cannot upload the recipe");
         }
     }
@@ -427,7 +440,426 @@ class RecipeDataAccess{
     }
 
 
+    static async getUserRecipes(userId, PageNumber, RowNumber) {
+        
+        try {
+            const Recipes = await prisma.$queryRaw`
+                SELECT
+                    recipe_id,
+                    steps,
+                    date,
+                    userid,
+                    title,
+                    link,
+                    cookingtime_min,
+                    views,
+                    votes,
+                    recipe.imageurl as recipe_imgurl,
+                    array_agg(presentedstring) presentedstring,
+                    array_agg(unit) as unit,
+                    array_agg(value) as value,
+                    array_agg(valueingram) as valueingram,
+                    array_agg(ingredient_name) as ingredient_name,
+                    array_agg(calories) as calories,
+                    array_agg(total_fat) as total_fat,
+                    array_agg(sat_fat) as sat_fat,
+                    array_agg(protein) as protein,
+                    array_agg(sodium) as sodium,
+                    array_agg(potassium) as potassium,
+                    array_agg(cholesterol) as cholestrol,
+                    array_agg(carbohydrates) as carbohydrates,
+                    array_agg(fiber) as fiber,
+                    array_agg(sugar) as sugar,
+                    array_agg(category) category,
+                    array_agg(ing.imageurl) as ingredient_imgurls
+            
+                FROM 
+                    "cosinaschema2"."Recipe" as recipe
+                LEFT JOIN 
+                    "cosinaschema2"."IngredientsOnRecipes" as recing 
+                ON 
+                    recipe.recipe_id = recing.recipeid
+                INNER JOIN
+                    "cosinaschema2"."Ingredient" as ing
+                ON 
+                    recing.ingid = ing.ingredient_name
+                ${
+                    Prisma.sql`WHERE recipe.userid = ${userId}`
+                }
+                GROUP BY recipe.recipe_id
+                ${
+                    Prisma.sql`LIMIT ${RowNumber}`
+                }
+                ${
+                    Prisma.sql`OFFSET ${(PageNumber - 1) * RowNumber}`
+                }
+            `
+
+            if(Recipes.length === 0){
+                throw new ClientError(`User doesn't have any recipes`, 404);
+            }
+
+            return Recipes;
+
+        } catch (error) {
+            throw new AppError("Cannot retrieve user's recipes");
+        }
+
+    }
+    
+    
+
+    static async SearchRecipesByQuery(Query, PageNumber, RowNumber) {
+        try {
+
+            const Recipes = await prisma.$queryRaw`
+
+                WITH OrderedRecipesByIng AS (
+                    SELECT 
+                        refid, 
+                        count(*) as c,
+                        recipe.tag_nb as rc
+                    FROM "cosinaschema2"."Tag" as tag
+
+                    JOIN "cosinaschema2"."Recipe" as recipe
+                    ON recipe.recipe_id = tag.refid
+
+                    WHERE  
+                            type = 'r'
+                        AND
+                            tag IN (${
+                                Prisma.join(
+                                    Query.split(' ').
+                                        map((q) => 
+                                            Prisma.sql`${q.toLowerCase()}`
+                                        )
+                                )
+                            })
+                    GROUP BY refid, rc
+                    ORDER BY c DESC, rc
+                    ${
+                        Prisma.sql`LIMIT ${RowNumber}`
+                    }
+                    ${
+                        Prisma.sql`OFFSET ${(PageNumber - 1) * RowNumber}`
+                    }
+                )
+
+
+
+
+                SELECT
+                    recipe_id,
+                    steps,
+                    date,
+                    userid,
+                    title,
+                    link,
+                    cookingtime_min,
+                    views,
+                    votes,
+                    recipe.imageurl as recipe_imgurl,
+                    array_agg(presentedstring) presentedstring,
+                    array_agg(unit) as unit,
+                    array_agg(value) as value,
+                    array_agg(valueingram) as valueingram,
+                    array_agg(ingredient_name) as ingredient_name,
+                    array_agg(calories) as calories,
+                    array_agg(total_fat) as total_fat,
+                    array_agg(sat_fat) as sat_fat,
+                    array_agg(protein) as protein,
+                    array_agg(sodium) as sodium,
+                    array_agg(potassium) as potassium,
+                    array_agg(cholesterol) as cholestrol,
+                    array_agg(carbohydrates) as carbohydrates,
+                    array_agg(fiber) as fiber,
+                    array_agg(sugar) as sugar,
+                    array_agg(category) category,
+                    array_agg(ing.imageurl) as ingredient_imgurls,
+                    orderedByIng.c as relevance
+            
+                FROM 
+                    "cosinaschema2"."Recipe" as recipe
+                LEFT JOIN 
+                    "cosinaschema2"."IngredientsOnRecipes" as recing 
+                ON 
+                    recipe.recipe_id = recing.recipeid
+                INNER JOIN
+                    "cosinaschema2"."Ingredient" as ing
+                ON 
+                    recing.ingid = ing.ingredient_name
+                INNER JOIN
+                    OrderedRecipesByIng as orderedByIng
+                ON 
+                    orderedByIng.refid = recipe.recipe_id
+                GROUP BY recipe.recipe_id, orderedByIng.c, orderedByIng.rc
+                ORDER BY 
+                    orderedByIng.c DESC,
+                    orderedByIng.rc 
+            `
+
+
+
+            if(Recipes.length === 0){
+                throw new ClientError(`No recipes found`, 404);
+            }
+
+            return Recipes;
+
+        } catch (error) {
+            console.log(error);
+            throw new AppError("Cannot retrieve recipes");
+        }
+
+    }
+
+
+    static async SearchRecipesByIng(Ingredients, PageNumber, RowNumber) {
+        try {
+
+            const Recipes = await prisma.$queryRaw`
+               
+                WITH OrderedRecipesByIng AS (
+                    SELECT
+                        r.recipeid,
+                        count(*) as c,
+                        recipe.ing_nb as rc
+                    FROM "cosinaschema2"."IngredientsOnRecipes" as r
+
+                    JOIN "cosinaschema2"."Recipe" as recipe
+                    ON recipe.recipe_id = r.recipeid
+                    
+                    WHERE ingid IN (
+                        ${
+                            Prisma.join(
+                                Ingredients.map((q) =>
+                                    Prisma.sql`${q}`
+                                )
+                            )
+                        }
+                    )
+                    GROUP BY r.recipeid, rc
+                    ORDER BY c DESC, rc
+                    ${
+                        Prisma.sql`LIMIT ${RowNumber}`
+                    }
+                    ${
+                        Prisma.sql`OFFSET ${(PageNumber - 1) * RowNumber}`
+                    }
+                )
+
+
+
+
+                SELECT
+                    recipe_id,
+                    steps,
+                    date,
+                    userid,
+                    title,
+                    link,
+                    cookingtime_min,
+                    views,
+                    votes,
+                    recipe.imageurl as recipe_imgurl,
+                    array_agg(presentedstring) presentedstring,
+                    array_agg(unit) as unit,
+                    array_agg(value) as value,
+                    array_agg(valueingram) as valueingram,
+                    array_agg(ingredient_name) as ingredient_name,
+                    array_agg(calories) as calories,
+                    array_agg(total_fat) as total_fat,
+                    array_agg(sat_fat) as sat_fat,
+                    array_agg(protein) as protein,
+                    array_agg(sodium) as sodium,
+                    array_agg(potassium) as potassium,
+                    array_agg(cholesterol) as cholestrol,
+                    array_agg(carbohydrates) as carbohydrates,
+                    array_agg(fiber) as fiber,
+                    array_agg(sugar) as sugar,
+                    array_agg(category) category,
+                    array_agg(ing.imageurl) as ingredient_imgurls,
+                    orderedByIng.rc
+            
+                FROM 
+                    "cosinaschema2"."Recipe" as recipe
+                LEFT JOIN 
+                    "cosinaschema2"."IngredientsOnRecipes" as recing 
+                ON 
+                    recipe.recipe_id = recing.recipeid
+                INNER JOIN
+                    "cosinaschema2"."Ingredient" as ing
+                ON 
+                    recing.ingid = ing.ingredient_name
+                INNER JOIN
+                    OrderedRecipesByIng as orderedByIng
+                ON 
+                    orderedByIng.recipeid = recipe.recipe_id
+                GROUP BY recipe.recipe_id, orderedByIng.rc, orderedByIng.c
+                ORDER BY 
+                    orderedByIng.c DESC,
+                    orderedByIng.rc 
+
+            `
+
+            if(Recipes.length === 0){
+                throw new ClientError(`No recipes found`, 404);
+            }
+
+            return Recipes;
+
+        } catch (error) {
+            console.log(error);
+            throw new AppError("Cannot retrieve recipes");
+        }
+
+    }
+
+
+    static async SearchRecipesByQueryIng(Query, Ingredients, PageNumber, RowNumber) {
+
+        try {
+
+            const Recipes = await prisma.$queryRaw`
+                
+                --WITH OrderedRecipesByIng AS (
+                WITH RecipeCounts AS (
+                    SELECT
+                        IngRec.recipeid as id,
+                        count(DISTINCT IngRec.ingid) as c_ing,
+                        count(DISTINCT tag.tag) as c_tag,
+                        recipe.ing_nb as ing_c,
+                        recipe.tag_nb as tag_c
+
+                    FROM "cosinaschema2"."IngredientsOnRecipes" as IngRec 
+
+                    JOIN "cosinaschema2"."Tag" as tag
+                    ON tag.refid = IngRec.recipeid
+
+                    JOIN "cosinaschema2"."Recipe" as recipe
+                    ON recipe.recipe_id = IngRec.recipeid
+                    
+                    WHERE IngRec.ingid IN (
+                            ${
+                                Prisma.join(
+                                    Ingredients.map((q) =>
+                                        Prisma.sql`${q}`
+                                    )
+                                )
+                            }
+                        )
+                        AND
+                            tag.type = 'r'
+                        AND
+                            tag.tag IN (${
+                                Prisma.join(
+                                    Query.split(' ').
+                                        map((q) => 
+                                            Prisma.sql`${q.toLowerCase()}`
+                                        )
+                                )
+                            })
+
+                    GROUP BY IngRec.recipeid, recipe.ing_nb, recipe.tag_nb
+                    --ORDER BY c_ing DESC, ing_c, c_tag DESC, tag_c
+
+                
+                ), 
+
+                OrderedRecipesByIng AS (
+
+                    SELECT id, c_ing, c_tag, ing_c, tag_c, c_ing / ing_c AS rec
+                    FROM RecipeCounts
+                    ORDER BY rec DESC, c_ing DESC, ing_c, c_tag DESC, tag_c
+                    ${
+                        Prisma.sql`LIMIT ${RowNumber}`
+                    }
+                    ${
+                        Prisma.sql`OFFSET ${(PageNumber - 1) * RowNumber}`
+                    }
+                )
+
+
+                SELECT
+                    recipe_id,
+                    steps,
+                    date,
+                    userid,
+                    title,
+                    link,
+                    cookingtime_min,
+                    views,
+                    votes,
+                    recipe.imageurl as recipe_imgurl,
+                    array_agg(presentedstring) presentedstring,
+                    array_agg(unit) as unit,
+                    array_agg(value) as value,
+                    array_agg(valueingram) as valueingram,
+                    array_agg(ingredient_name) as ingredient_name,
+                    array_agg(calories) as calories,
+                    array_agg(total_fat) as total_fat,
+                    array_agg(sat_fat) as sat_fat,
+                    array_agg(protein) as protein,
+                    array_agg(sodium) as sodium,
+                    array_agg(potassium) as potassium,
+                    array_agg(cholesterol) as cholestrol,
+                    array_agg(carbohydrates) as carbohydrates,
+                    array_agg(fiber) as fiber,
+                    array_agg(sugar) as sugar,
+                    array_agg(category) category,
+                    array_agg(ing.imageurl) as ingredient_imgurls
+            
+                FROM 
+                    "cosinaschema2"."Recipe" as recipe
+                LEFT JOIN 
+                    "cosinaschema2"."IngredientsOnRecipes" as recing 
+                ON 
+                    recipe.recipe_id = recing.recipeid
+                INNER JOIN
+                    "cosinaschema2"."Ingredient" as ing
+                ON 
+                    recing.ingid = ing.ingredient_name
+                INNER JOIN
+                    OrderedRecipesByIng as orderedByIng
+                ON 
+                    orderedByIng.id = recipe.recipe_id
+
+                GROUP BY recipe.recipe_id,
+                    orderedByIng.ing_c, 
+                    orderedByIng.tag_c, 
+                    orderedByIng.c_tag,
+                    orderedByIng.c_ing,
+                    orderedByIng.rec 
+                ORDER BY 
+                    orderedByIng.rec DESC,
+                    orderedByIng.c_ing DESC,
+                    orderedByIng.ing_c,
+                    orderedByIng.c_tag DESC,
+                    orderedByIng.tag_c
+                
+
+            `
+
+            //console.log(Recipes);
+            //console.log(Recipes.map((r) => r.wow));
+
+            if(Recipes.length === 0){
+                throw new ClientError(`No recipes found`, 404);
+            }
+
+            return Recipes;
+
+        } catch (error) {
+            console.log(error);
+            throw new AppError("Cannot retrieve recipes");
+        }
+
+
+    }
+
+
 }
+
 
 
 module.exports = RecipeDataAccess;

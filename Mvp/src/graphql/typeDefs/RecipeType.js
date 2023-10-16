@@ -13,6 +13,7 @@ const Recipe = `#graphql
         imageurl: String
     }
 `
+
 const GetRecipeByIdType = `#graphql
     type Return_GetRecipeById {
 
@@ -53,8 +54,45 @@ const GetRecipeByIdType = `#graphql
     }
 `
 
+const GetUserRecipesType = `#graphql
+    type Return_GetUserRecipes {
 
+        #ingredient data
+        ing_imgurl: [String]
+        presentedstring: [String!]
+        unit: [String]
+        value: [Int]
+        valueingram: [Float]
+        ingredient_name: [String!]!
+        calories: [Float!]!
+        total_fat: [Float!]!
+        sat_fat: [Float!]!
+        protein: [Float!]!
+        sodium: [Float!]!
+        potassium: [Float!]!
+        cholestrol: [Float!]!
+        carbohydrates: [Float!]!
+        fiber: [Float!]!
+        sugar: [Float!]!
+        category: [Float!]!
 
+        #user data
+        userid: ID!
+
+        #recipe data
+        #recipe_id: ID!
+        recipe_id: ID!
+        steps: [String!]!
+        date: String!
+        title: String!
+        link: [String!]
+        cookingtime_min: Int!
+        views: Int!
+        votes: Int!
+        recipe_imgurl: [String]
+
+    }
+`
 
 const CreateRecipeType = `#graphql
     input Args_CreateRecipe{
@@ -95,8 +133,45 @@ const EditRecipeType = `#graphql
     }
 `
 
+const SearchRecipesType = `#graphql
+    type Return_SearchRecipes {
 
+        #ingredient data
+        ing_imgurl: [String]
+        presentedstring: [String!]
+        unit: [String]
+        value: [Int]
+        valueingram: [Float]
+        ingredient_name: [String!]!
+        calories: [Float!]!
+        total_fat: [Float!]!
+        sat_fat: [Float!]!
+        protein: [Float!]!
+        sodium: [Float!]!
+        potassium: [Float!]!
+        cholestrol: [Float!]!
+        carbohydrates: [Float!]!
+        fiber: [Float!]!
+        sugar: [Float!]!
+        category: [Float!]!
 
+        #user data
+        userid: ID!
+
+        #recipe data
+        #recipe_id: ID!
+        recipe_id: ID!
+        steps: [String!]!
+        date: String!
+        title: String!
+        link: [String!]
+        cookingtime_min: Int!
+        views: Int!
+        votes: Int!
+        recipe_imgurl: [String]
+
+    }
+`
 
 
 
@@ -105,6 +180,8 @@ module.exports = {
     Recipe,
     GetRecipeByIdType,
     CreateRecipeType,
-    EditRecipeType
+    EditRecipeType,
+    GetUserRecipesType,
+    SearchRecipesType
 };
 

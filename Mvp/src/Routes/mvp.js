@@ -1,6 +1,5 @@
 
 const express = require('express');
-const AuthController = require('../Controllers/auth');
 const AuthMiddleware = require('../Middleware/AuthMiddleware');
 const successResponse = require('../Contracts/successResponse');
 

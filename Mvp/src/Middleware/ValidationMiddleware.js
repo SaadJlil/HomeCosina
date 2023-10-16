@@ -3,6 +3,7 @@ const request = require('request')
 
 const ClientError = require('../Exceptions/ClientError');
 const { recipe } = require('../Config/Prisma');
+const { Ingredient } = require('../graphql/typeDefs/IngredientType');
 
 
 
@@ -35,6 +36,129 @@ class ValidationMiddleware{
 
     }
 */
+
+    static GetIngredientByIdValidationMiddleware(Ingredient_name){
+        try {
+
+            if(Ingredient_name.length > 250){
+                throw new ClientError("Wrong Ingredient Id", 400);
+            }
+
+        }
+        catch(err){
+            throw err
+        }
+
+    }
+
+    static SearchRecipesByQueryIngValidationMiddleware(Query, Ingredients, PageNumber, RowNumber){
+        try {
+
+            if(Query.length == 0 || Ingredients.length == 0){
+                throw new ClientError("Must have both Recipes and Ingredients in the request", 400);
+            }
+
+            if(Query.length > 250){
+                throw new ClientError("A Query cannot exceed 250 characters", 400);
+            }
+
+            if(Ingredients.length > 30){
+                throw new ClientError("Too many Ingredients selected", 400);
+            }
+
+            Ingredients.forEach((ing) => {
+                if(ing.length > 250){
+                    throw new ClientError('Wrong Ingredients', 400);
+                }
+            })
+            
+            if(PageNumber < 1 || PageNumber > 30){
+                throw new ClientError("Page number must be between 1 and 30", 400);
+            }
+
+            if(RowNumber < 1 || RowNumber > 30){
+                throw new ClientError("Row volume must be between 1 and 30", 400);
+            }
+
+        }
+        catch(err){
+            throw err
+        }
+
+    }
+
+    static SearchRecipesByQueryValidationMiddleware(Query, PageNumber, RowNumber){
+        try {
+
+            if(Query.length > 250){
+                throw new ClientError("A Query cannot exceed 250 characters", 400);
+            }
+
+            if(PageNumber < 1 || PageNumber > 30){
+                throw new ClientError("Page number must be between 1 and 30", 400);
+            }
+
+            if(RowNumber < 1 || RowNumber > 30){
+                throw new ClientError("Row volume must be between 1 and 30", 400);
+            }
+
+        }
+        catch(err){
+            throw err
+        }
+
+    }
+
+
+    static SearchRecipesByIngValidationMiddleware(Ingredients, PageNumber, RowNumber){
+        try {
+
+            if(Ingredients.length > 30){
+                throw new ClientError("Too many Ingredients selected", 400);
+            }
+
+            Ingredients.forEach((ing) => {
+                if(ing.length > 250){
+                    throw new ClientError('Wrong Ingredients', 400);
+                }
+            })
+            
+            if(PageNumber < 1 || PageNumber > 30){
+                throw new ClientError("Page number must be between 1 and 30", 400);
+            }
+
+            if(RowNumber < 1 || RowNumber > 30){
+                throw new ClientError("Row volume must be between 1 and 30", 400);
+            }
+
+        }
+        catch(err){
+            throw err
+        }
+
+    }
+
+    static GetUserRecipesValidationMiddleware(UserId, PageNumber, RowNumber){
+        try {
+
+            if(UserId.length > 36){
+                throw new ClientError("Wrong UserId", 400);
+            }
+
+            if(PageNumber < 1 || PageNumber > 30){
+                throw new ClientError("Page number must be between 1 and 30", 400);
+            }
+
+            if(RowNumber < 1 || RowNumber > 30){
+                throw new ClientError("Row volume must be between 1 and 30", 400);
+            }
+
+        }
+        catch(err){
+            throw err
+        }
+
+    }
 
     @ErrorCatcher.TryCatchErrorsDecorator
     static GetRecipeByIdValidationMiddleware(id){

@@ -15,7 +15,14 @@ class RecipeController{
     static async getRecipeById(args) {
         ValidationMiddleware.GetRecipeByIdValidationMiddleware(args.recipe_id);
 
-        return RecipeDataAccess.getRecipeById(args.recipe_id);
+        return await RecipeDataAccess.getRecipeById(args.recipe_id);
+    }
+
+    @ErrorCatcher.TryCatchErrorsDecoratorAsync
+    static async getUserRecipes(args) {
+        ValidationMiddleware.GetUserRecipesValidationMiddleware(args.user_id, args.page_nb, args.row_nb);
+
+        return await RecipeDataAccess.getUserRecipes(args.user_id, args.page_nb, args.row_nb);
     }
 
     @ErrorCatcher.TryCatchErrorsDecoratorAsync
@@ -42,6 +49,38 @@ class RecipeController{
 
         return args.editRecipeArgs.recipe_id;
     }
+
+    @ErrorCatcher.TryCatchErrorsDecoratorAsync
+    static async searchRecipesByQuery(args) {
+
+        const Query = args.Query.toLowerCase();
+
+        ValidationMiddleware.SearchRecipesByQueryValidationMiddleware(Query, args.page_nb, args.row_nb);
+
+        return await RecipeDataAccess.SearchRecipesByQuery(Query, args.page_nb, args.row_nb);
+    }
+
+    @ErrorCatcher.TryCatchErrorsDecoratorAsync
+    static async searchRecipesByIng(args) {
+        ValidationMiddleware.SearchRecipesByIngValidationMiddleware(args.Ingredients, args.page_nb, args.row_nb);
+
+        return await RecipeDataAccess.SearchRecipesByIng(args.Ingredients, args.page_nb, args.row_nb);
+    }
+
+    @ErrorCatcher.TryCatchErrorsDecoratorAsync
+    static async searchRecipesByQueryIng(args) {
+
+        const Query = args.Query.toLowerCase();
+
+        ValidationMiddleware.SearchRecipesByQueryIngValidationMiddleware(Query, args.Ingredients, args.page_nb, args.row_nb);
+
+        return await RecipeDataAccess.SearchRecipesByQueryIng(Query, args.Ingredients, args.page_nb, args.row_nb);
+    }
+
+
+
+
+
 
 } 
 

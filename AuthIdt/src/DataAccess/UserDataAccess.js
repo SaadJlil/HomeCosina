@@ -6,14 +6,18 @@ const prisma = require('./../Config/Prisma')
 class UserDataAccess{
 
     static async GetUserById(Id){
+        try{
+            const User = await prisma.User.findFirst({
+                where: {
+                    id: Id
+                }
+            });
 
-        const User = await prisma.User.findFirst({
-            where: {
-                id: Id
-            }
-        });
-
-        return User;
+            return User;
+        }
+        catch(err){
+            throw new AppError(`Can't get the info of the following user: ${Id}`);
+        }
     }
 
 
