@@ -23,11 +23,23 @@ class AuthController {
         const userData = await AuthService.SignUpUserService(req.body.email, req.body.password);
 
         const userId = userData.user.uid
+        const profilePic = req.body.profilepic
+
+        if(!!profilePic){
+          try{
+            UserService.StoreProfilePic(userId, profilePic.split(',')[1]);
+          }catch(err){
+            await AuthService.DeleteUserAccount(userId);
+            throw AppError("Cannot upload profile picture", 500);
+          }
+        }
+
         const userEmail = req.body.email
         const username = req.body.username
+        const bio = req.body.bio
 
         //Add use to the postgres database (no passowrd etc...) 
-        await UserService.AddUserDatabase(username, userEmail, userId)
+        await UserService.AddUserDatabase(username, userEmail, userId, bio)
 
         const refreshToken = await TokenService.createRefreshToken(userId);
         const accessToken = await TokenService.createAccessToken(userId, refreshToken.id);

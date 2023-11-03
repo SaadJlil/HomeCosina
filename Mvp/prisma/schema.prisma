@@ -61,7 +61,15 @@ model IngredientsOnRecipes {
 
 model Tag {
   tag_id String @id @default(uuid())
-  type String 
+  type String @db.VarChar(1) 
   refid String
   tag String
+}
+
+model Vote{
+  userid String
+  recipeid String
+  vote_value Int
+
+  @@id([userid, recipeid])
 }

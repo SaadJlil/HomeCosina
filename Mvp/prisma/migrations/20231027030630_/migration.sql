@@ -50,11 +50,20 @@ CREATE TABLE "IngredientsOnRecipes" (
 -- CreateTable
 CREATE TABLE "Tag" (
     "tag_id" TEXT NOT NULL,
-    "type" TEXT NOT NULL,
+    "type" VARCHAR(1) NOT NULL,
     "refid" TEXT NOT NULL,
     "tag" TEXT NOT NULL,
 
     CONSTRAINT "Tag_pkey" PRIMARY KEY ("tag_id")
+);
+
+-- CreateTable
+CREATE TABLE "Vote" (
+    "userid" TEXT NOT NULL,
+    "recipeid" TEXT NOT NULL,
+    "vote_value" INTEGER NOT NULL,
+
+    CONSTRAINT "Vote_pkey" PRIMARY KEY ("userid","recipeid")
 );
 
 -- AddForeignKey

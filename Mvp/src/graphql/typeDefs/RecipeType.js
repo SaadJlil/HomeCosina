@@ -11,6 +11,7 @@ const Recipe = `#graphql
         views: Int!
         votes: Int!
         imageurl: String
+        vote: Int! 
     }
 `
 
@@ -50,6 +51,9 @@ const GetRecipeByIdType = `#graphql
         views: Int!
         votes: Int!
         recipe_imgurl: [String]
+
+        image: String
+
 
     }
 `
@@ -91,6 +95,7 @@ const GetUserRecipesType = `#graphql
         votes: Int!
         recipe_imgurl: [String]
 
+        image: String
     }
 `
 
@@ -109,6 +114,8 @@ const CreateRecipeType = `#graphql
         units: [String!]!
         values: [Int!]!
         valuesingram: [Float!]!
+
+        image: String
 
     }
 `
@@ -129,6 +136,8 @@ const EditRecipeType = `#graphql
         units: [String!]!
         values: [Int!]!
         valuesingram: [Float!]!
+
+        image: String
 
     }
 `
@@ -170,6 +179,10 @@ const SearchRecipesType = `#graphql
         votes: Int!
         recipe_imgurl: [String]
 
+        image: String
+
+        vote: Int!
+
     }
 `
 
@@ -184,4 +197,6 @@ module.exports = {
     GetUserRecipesType,
     SearchRecipesType
 };
+
+
 

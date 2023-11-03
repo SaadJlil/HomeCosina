@@ -19,6 +19,18 @@ class IngredientController{
         return await IngredientDataAccess.getIngredientById(args.ingredient_name);
     }
 
+    @ErrorCatcher.TryCatchErrorsDecoratorAsync
+    static async searchIngredientsByQuery(args) {
+
+        const Query = args.Query.toLowerCase();
+
+        ValidationMiddleware.SearchIngredientsByQueryIngValidationMiddleware(Query, args.page_nb, args.row_nb);
+
+        return await IngredientDataAccess.SearchIngredientsByQuery(Query, args.page_nb, args.row_nb);
+
+    }
+
+
 } 
 
 module.exports = IngredientController;

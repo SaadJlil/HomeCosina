@@ -23,20 +23,24 @@ module.exports = buildSchema(`#graphql
     #Ingredient
     ${Ingredient.Ingredient}
     ${Ingredient.GetIngredientByIdType}
+    ${Ingredient.SearchIngredientType}
 
     type Query {
         SearchRecipesByIng(Ingredients: [String!]!, page_nb: Int!, row_nb: Int!): [Return_SearchRecipes!],
         SearchRecipesByQuery(Query: String!, page_nb: Int!, row_nb: Int!): [Return_SearchRecipes!],
         SearchRecipesByQueryIng(Query: String!, Ingredients: [String!]!, page_nb: Int!, row_nb: Int!): [Return_SearchRecipes!],
+        SearchSuggestionsRecipe(Query: String!, page_nb: Int!, row_nb: Int!): [String!],
         GetUserRecipes(user_id: ID!, page_nb: Int!, row_nb: Int!): [Return_GetUserRecipes!],
         GetRecipeById(recipe_id: ID!): Return_GetRecipeById!,
         GetIngredientById(ingredient_name: ID!): Return_GetIngredientById!
+        SearchIngredientsByQuery(Query: String!, page_nb: Int!, row_nb: Int!): [Return_SearchIngredients!],
     }
 
     type Mutation {
         CreateRecipe(createRecipeArgs: Args_CreateRecipe!): ID!
         EditRecipe(editRecipeArgs: Args_EditRecipe!): ID!
         DeleteRecipe(recipe_id: ID!): ID!
+        VoteRecipe(recipe_id: ID!, vote_value: Boolean!): ID!
     }
 
     schema {

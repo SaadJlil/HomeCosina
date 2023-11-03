@@ -23,6 +23,14 @@ require("@babel/core").transformSync("code", {
 
 const app = express();
 
+
+
+//increase payload size limit (images)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+
+
 const morganFormat = config.isDev ? "dev" : "combined";
 
 app.use(morgan(morganFormat));

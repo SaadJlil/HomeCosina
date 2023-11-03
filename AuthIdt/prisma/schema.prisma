@@ -23,7 +23,7 @@ model User {
   id      String @id @default(uuid())
   email   String   @unique
   username  String @unique
+  bio String?
   emailconfirmed Boolean @default(false)
   refreshToken RefreshToken[]
 }
-

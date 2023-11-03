@@ -36,7 +36,7 @@ class RecipeController{
     static async deleteRecipe(args) {
         ValidationMiddleware.DeleteRecipeValidationMiddleware(args.recipe_id);
 
-        await RecipeDataAccess.deleteRecipeById(args.recipe_id, args.userId);
+        await RecipeDataAccess.deleteRecipeById(args.recipe_id, args.userId, true);
 
         return args.recipe_id;
     }
@@ -61,6 +61,17 @@ class RecipeController{
     }
 
     @ErrorCatcher.TryCatchErrorsDecoratorAsync
+    static async searchSuggestionsRecipe(args) {
+
+        const Query = args.Query.toLowerCase();
+
+        ValidationMiddleware.SearchSuggestionsRecipeValidationMiddleware(Query, args.page_nb, args.row_nb);
+
+        return await RecipeDataAccess.SearchSuggestionsRecipe(Query, args.page_nb, args.row_nb);
+    }
+
+
+    @ErrorCatcher.TryCatchErrorsDecoratorAsync
     static async searchRecipesByIng(args) {
         ValidationMiddleware.SearchRecipesByIngValidationMiddleware(args.Ingredients, args.page_nb, args.row_nb);
 
@@ -75,12 +86,17 @@ class RecipeController{
         ValidationMiddleware.SearchRecipesByQueryIngValidationMiddleware(Query, args.Ingredients, args.page_nb, args.row_nb);
 
         return await RecipeDataAccess.SearchRecipesByQueryIng(Query, args.Ingredients, args.page_nb, args.row_nb);
+
     }
 
+    @ErrorCatcher.TryCatchErrorsDecoratorAsync
+    static async VoteRecipe(args) {
+        ValidationMiddleware.VoteRecipeValidationMiddleware(args.recipe_id);
 
+        await RecipeDataAccess.voteRecipe(args.userId, args.recipe_id, args.vote_value ? 1 : -1);
 
-
-
+        return args.recipe_id;
+    }
 
 } 
 

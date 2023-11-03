@@ -34,14 +34,40 @@ const GetIngredientByIdType = `#graphql
         fiber: Float!
         sugar: Float!
         category: Float!
+        image: String
+
+    }
+`
+
+
+const SearchIngredientType = `#graphql
+    type Return_SearchIngredients {
+
+        #ingredient data
+        ingredient_name: String!
+        imageurl: String
+        calories: Float!
+        total_fat: Float!
+        sat_fat: Float!
+        protein: Float!
+        sodium: Float!
+        potassium: Float!
+        cholestrol: Float!
+        carbohydrates: Float!
+        fiber: Float!
+        sugar: Float!
+        category: Float!
+        image: String
 
     }
 `
 
 
 
+
 module.exports = {
     Ingredient,
-    GetIngredientByIdType
+    GetIngredientByIdType,
+    SearchIngredientType
 };
 

@@ -1,10 +1,11 @@
-const emailValidator = require('./../Services/ValidateEmail');
 const TryCatchErrorsDecorator = require('./../Decorators/TryCatchErrorsDecorator');
 const passwordValid = require('../Services/ValidatePassword');
 const usernameValidator = require('../Services/ValidateUsername');
+const picValidator = require('../Services/ValidatePic');
 const firebase = require("../Config/firebaseClient");
 const AuthService = require("../Services/Auth");
 const TokenService = require("../Services/TokenService");
+const emailValidator = require('./../Services/ValidateEmail');
 
 const ClientError = require('../Exceptions/ClientError');
 const UserDataAccess = require('./../DataAccess/UserDataAccess');
@@ -28,9 +29,17 @@ class AuthMiddleware{
             throw new ClientError("Username is required", 400);
         }  
 
+        if (!!req.body.bio && req.body.bio.length > 500) {
+            throw new ClientError("Bio must be less than 500 characters long", 400);
+        }
+
+        if(!!req.body.profilepic){
+            picValidator(req.body.profilepic);
+        }
+
         await emailValidator.signUp(req.body.email);
 
-        await passwordValid(req.body.password);
+        passwordValid(req.body.password);
 
         await usernameValidator(req.body.username)
 

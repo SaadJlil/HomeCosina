@@ -10,6 +10,7 @@ async function usernameValidator(username){
     }
 
     const UsernameExists = await UserDataAccess.UsernameExists(username);
+
     if(UsernameExists){
         throw new ClientError("The username used is already taken", 409);
     }

@@ -4,38 +4,12 @@ const request = require('request')
 const ClientError = require('../Exceptions/ClientError');
 const { recipe } = require('../Config/Prisma');
 const { Ingredient } = require('../graphql/typeDefs/IngredientType');
+const picValidator = require('../Services/ValidatePic');
 
 
 
 
 class ValidationMiddleware{
-
-/*
-    @TryCatchErrorsDecorator
-    static async ValidateSignUp(req, res, next){
-
-        if (!req.body.emasl) {
-            throw new ClientError("Email is required", 400);
-        }
-
-        if (!req.body.password) {
-            throw new ClientError("Password is required", 400);
-        }  
-        
-        if (!req.body.username) {
-            throw new ClientError("Username is required", 400);
-        }  
-
-        await emailValidator.signUp(req.body.email);
-
-        await passwordValid(req.body.password);
-
-        await usernameValidator(req.body.username)
-
-        return next();
-
-    }
-*/
 
     static GetIngredientByIdValidationMiddleware(Ingredient_name){
         try {
@@ -50,6 +24,30 @@ class ValidationMiddleware{
         }
 
     }
+
+    static SearchIngredientsByQueryIngValidationMiddleware(Query, PageNumber, RowNumber){
+        try {
+
+            if(Query.length > 250){
+                throw new ClientError("A Query cannot exceed 250 characters", 400);
+            }
+
+            if(PageNumber < 1 || PageNumber > 30){
+                throw new ClientError("Page number must be between 1 and 30", 400);
+            }
+
+            if(RowNumber < 1 || RowNumber > 30){
+                throw new ClientError("Row volume must be between 1 and 30", 400);
+            }
+
+        }
+        catch(err){
+            throw err
+        }
+
+    }
+
+
 
     static SearchRecipesByQueryIngValidationMiddleware(Query, Ingredients, PageNumber, RowNumber){
         try {
@@ -108,6 +106,30 @@ class ValidationMiddleware{
         }
 
     }
+
+    static SearchSuggestionsRecipeValidationMiddleware(Query, PageNumber, RowNumber){
+        try {
+
+            if(Query.length > 250){
+                throw new ClientError("A Query cannot exceed 250 characters", 400);
+            }
+
+            if(PageNumber < 1 || PageNumber > 30){
+                throw new ClientError("Page number must be between 1 and 30", 400);
+            }
+
+            if(RowNumber < 1 || RowNumber > 30){
+                throw new ClientError("Row volume must be between 1 and 30", 400);
+            }
+
+        }
+        catch(err){
+            throw err
+        }
+
+    }
+
+
 
 
     static SearchRecipesByIngValidationMiddleware(Ingredients, PageNumber, RowNumber){
@@ -175,6 +197,23 @@ class ValidationMiddleware{
         }
 
     }
+
+    @ErrorCatcher.TryCatchErrorsDecorator
+    static VoteRecipeValidationMiddleware(recipeId){
+        try {
+
+            const recipeIdRegEx = /^[A-Za-z0-9-]+$/
+
+            if(recipeId.length > 36 || !(recipeIdRegEx.test(recipeId))){
+                throw new ClientError('invalid recipe', 400);
+            }
+
+        }
+        catch(err){
+            throw err
+        }
+    }
+
 
     @ErrorCatcher.TryCatchErrorsDecorator
     static CreateRecipeValidationMiddleware(recipeData){
@@ -285,6 +324,11 @@ class ValidationMiddleware{
                     throw new ClientError('invalid tags', 400);
                 }
             });
+
+            if(!!recipeData.image){
+                picValidator(recipeData.image);
+            }
+            
         }
         catch(err){
             throw err
@@ -298,7 +342,7 @@ class ValidationMiddleware{
 
             const recipeIdRegEx = /^[A-Za-z0-9-]+$/
 
-            if(recipe_id.length > 250 || !(recipeIdRegEx.test(recipe_id))){
+            if(recipe_id.length > 36 || !(recipeIdRegEx.test(recipe_id))){
                 throw new ClientError('invalid recipe', 400);
             }           
         }
@@ -421,6 +465,11 @@ class ValidationMiddleware{
                     throw new ClientError('invalid tags', 400);
                 }
             });
+
+            if(!!recipeData.image){
+                picValidator(recipeData.image);
+            }
+
         }
         catch(err){
             throw err
