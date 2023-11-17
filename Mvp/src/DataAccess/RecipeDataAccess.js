@@ -804,16 +804,6 @@ class RecipeDataAccess{
                     orderedByIng.A DESC
             `
 
-
-
-
-
-
-
-            //console.log(Recipes[0])
-
-
-
             if(Recipes.length === 0){
                 throw new ClientError(`No recipes found`, 404);
             }

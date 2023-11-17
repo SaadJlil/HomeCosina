@@ -22,6 +22,20 @@ model Recipe {
   imageurl String?
   ingredients IngredientsOnRecipes[]
 
+  calories Float?
+  total_fat Float?
+  sat_fat Float?
+  protein Float?
+  sodium Float?
+  potassium Float?
+  cholesterol Float?
+  carbohydrates Float?
+  fiber Float?
+  sugar Float?
+
+
+
+
   tag_nb Int
   ing_nb Int
 
@@ -53,7 +67,7 @@ model IngredientsOnRecipes {
 
   presentedstring String?
   unit String?
-  value Int?
+  value Float?
   valueingram Float?
 
   @@id([recipeid, ingid])
