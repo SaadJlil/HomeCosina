@@ -4,6 +4,9 @@ const prisma = require('./../Config/Prisma');
 const { Prisma } = require('@prisma/client');
 const { v4: uuidv4 } = require('uuid');
 const ImageDataAccess = require('./../DataAccess/ImageDataAccess');
+const B2 = require('backblaze-b2');
+const sharp = require('sharp');
+const imageConfig = require('./../Config/image');
 
 
 
@@ -22,24 +25,38 @@ class RecipeDataAccess{
                     cookingtime_min,
                     views,
                     votes,
-                    recipe.imageurl as recipe_imgurl,
+                    recipe.main_imageurl as recipe_imgurl,
+
+
+                    recipe.calories as r_calories, 
+                    recipe.total_fat as r_total_fat,
+                    recipe.sat_fat as r_sat_fat,
+                    recipe.protein as r_protein,
+                    recipe.sodium as r_sodium,
+                    recipe.potassium as r_potassium,
+                    recipe.cholesterol as r_cholesterol,
+                    recipe.carbohydrates as r_carbohydrates,
+                    recipe.fiber as r_fiber,
+                    recipe.sugar as r_sugar,
+
+             
                     array_agg(presentedstring) as presentedstring,
                     array_agg(unit) as unit,
                     array_agg(value) as value,
                     array_agg(valueingram) as valueingram,
                     array_agg(ingredient_name) as ingredient_name,
-                    array_agg(calories) as calories,
-                    array_agg(total_fat) as total_fat,
-                    array_agg(sat_fat) as sat_fat,
-                    array_agg(protein) as protein,
-                    array_agg(sodium) as sodium,
-                    array_agg(potassium) as potassium,
-                    array_agg(cholesterol) as cholestrol,
-                    array_agg(carbohydrates) as carbohydrates,
-                    array_agg(fiber) as fiber,
-                    array_agg(sugar) as sugar,
-                    array_agg(category) category,
-                    array_agg(ing.imageurl) as ingredient_imgurls,
+                    array_agg(ing.calories) as calories,
+                    array_agg(ing.total_fat) as total_fat,
+                    array_agg(ing.sat_fat) as sat_fat,
+                    array_agg(ing.protein) as protein,
+                    array_agg(ing.sodium) as sodium,
+                    array_agg(ing.potassium) as potassium,
+                    array_agg(ing.cholesterol) as cholestrol,
+                    array_agg(ing.carbohydrates) as carbohydrates,
+                    array_agg(ing.fiber) as fiber,
+                    array_agg(ing.sugar) as sugar,
+                    array_agg(ing.category) category,
+                    array_agg(ing.thumbnail_imageurl) as ingredient_imgurls,
 
                     recipe.votes as votes,
                     recipe.views as views
@@ -63,19 +80,10 @@ class RecipeDataAccess{
                 LIMIT 1
             `
 
+
             if(Recipe.length === 0){
                 throw new ClientError('Recipe does not exist', 404);
             }
-
-            const thing = prisma.$executeRaw`
-                    UPDATE "cosinaschema2"."Recipe" as recipe
-                    SET views = recipe.views + 1
-                    FROM "cosinaschema2"."Recipe" as src_recipe
-                    ${
-                        Prisma.sql`WHERE recipe.recipe_id = ${id}`
-                    }
-                `
-
 
             new Promise((resolve, reject) => {
                 prisma.$executeRaw`
@@ -94,12 +102,10 @@ class RecipeDataAccess{
 
 
             return { 
-                ...Recipe[0], 
-                image: ImageDataAccess.GetImage(id, true)
+                ...Recipe[0]
             };
 
         } catch (error) {
-            //console.log(error);
             throw new AppError("Cannot retrieve the recipe");
         }
 
@@ -108,11 +114,29 @@ class RecipeDataAccess{
     static async createRecipe(recipeData, userId) {
         try {
 
+
+            var base64Image = recipeData.image.split(',')[1]; 
+
+            const buffer = Buffer.from(base64Image, 'base64');
+            
+
+            base64Image = await sharp(buffer)
+                .resize({ width: imageConfig.thumbnailWidth, height: imageConfig.thumbnailWidth})
+                .toBuffer();
+            
+            
+            
+            const thumbnailImage = base64Image.toString('base64');
+
+
             const recipe_id = uuidv4();
+            var mainImageUrl = '';
+            var thumbnailImageUrl = '';
 
             if(!!recipeData.image){
                 try{
-                    ImageDataAccess.StoreImage(recipe_id, recipeData.image.split(',')[1], true);
+                    mainImageUrl = await ImageDataAccess.StoreImage(recipe_id, recipeData.image, true, false);
+                    thumbnailImageUrl = await ImageDataAccess.StoreImage(recipe_id, thumbnailImage, true, true);
                 }catch(err){
                     throw AppError("Cannot upload image", 500);
                 }
@@ -133,6 +157,7 @@ class RecipeDataAccess{
                     });
 
                 }
+
 
                 const all_tags = [...new Set(recipeData.tags.concat(recipeData.title.split(' ')))];
 
@@ -168,24 +193,26 @@ class RecipeDataAccess{
                                 recipe_id,
                                 title,
                                 userid,
-                                imageurl,
                                 steps,
                                 cookingtime_min,
                                 link,
                                 tag_nb,
-                                ing_nb
+                                ing_nb,
+                                main_imageurl,
+                                thumbnail_imageurl
                             )
                         VALUES (
                                 ${Prisma.join([   
                                     Prisma.sql`${recipe_id}`,
                                     Prisma.sql`${recipeData.title.toLowerCase()}`,
                                     Prisma.sql`${userId}`,
-                                    Prisma.sql`${recipeData.recipe_imgurl}`,
                                     Prisma.sql`ARRAY[${Prisma.join(recipeData.steps)}]`,
                                     Prisma.sql`${recipeData.cookingtime_min}`,
                                     Prisma.sql`ARRAY[${Prisma.join(recipeData.link)}]`,
                                     Prisma.sql`${all_tags.length}`,
-                                    Prisma.sql`${recipeData.ingredients_id.length}`
+                                    Prisma.sql`${recipeData.ingredients_id.length}`,
+                                    Prisma.sql`${mainImageUrl}`,
+                                    Prisma.sql`${thumbnailImageUrl}`
                             ])}
                             )
                     `,
@@ -247,19 +274,68 @@ class RecipeDataAccess{
                                 )
                             )
                         )}
+                    `,
+                    prisma.$executeRaw`
+
+                        WITH RecipeNutrition AS (
+                            SELECT
+                                ingrec.recipeid,
+                                SUM(ingrec.valueingram * ing.calories) / SUM(ingrec.valueingram) AS calories,
+                                SUM(ingrec.valueingram * ing.total_fat) / SUM(ingrec.valueingram) AS total_fat,
+                                SUM(ingrec.valueingram * ing.sat_fat) / SUM(ingrec.valueingram) AS sat_fat,
+                                SUM(ingrec.valueingram * ing.protein) / SUM(ingrec.valueingram) AS protein,
+                                SUM(ingrec.valueingram * ing.sodium) / SUM(ingrec.valueingram) AS sodium,
+                                SUM(ingrec.valueingram * ing.potassium) / SUM(ingrec.valueingram) AS potassium,
+                                SUM(ingrec.valueingram * ing.cholesterol) / SUM(ingrec.valueingram) AS cholesterol,
+                                SUM(ingrec.valueingram * ing.carbohydrates) / SUM(ingrec.valueingram) AS carbohydrates,
+                                SUM(ingrec.valueingram * ing.fiber) / SUM(ingrec.valueingram) AS fiber,
+                                SUM(ingrec.valueingram * ing.sugar) / SUM(ingrec.valueingram) AS sugar
+                            FROM
+                                "cosinaschema2"."IngredientsOnRecipes" AS ingrec
+                            INNER JOIN
+                                "cosinaschema2"."Ingredient" AS ing ON ing.ingredient_name = ingrec.ingid
+                            ${
+                                Prisma.sql`WHERE 
+                                    ingrec.recipeid = ${recipe_id}
+                                `
+                            }
+                            GROUP BY
+                                ingrec.recipeid
+                        )
+                        UPDATE "cosinaschema2"."Recipe" AS recipe
+                        SET
+                            calories = RecipeNutrition.calories,
+                            total_fat = RecipeNutrition.total_fat,
+                            sat_fat = RecipeNutrition.sat_fat,
+                            protein = RecipeNutrition.protein,
+                            sodium = RecipeNutrition.sodium,
+                            potassium = RecipeNutrition.potassium,
+                            cholesterol = RecipeNutrition.cholesterol,
+                            carbohydrates = RecipeNutrition.carbohydrates,
+                            fiber = RecipeNutrition.fiber,
+                            sugar = RecipeNutrition.sugar
+                        FROM
+                            RecipeNutrition
+                        WHERE
+                            recipe.recipe_id = RecipeNutrition.recipeid
+                            AND EXISTS (
+                                SELECT 1
+                                FROM "cosinaschema2"."IngredientsOnRecipes" AS ingrec
+                                WHERE ingrec.recipeid = recipe.recipe_id
+                            )
+
                     `
                 ]);
 
                 return recipe_id;
 
             } catch(err) {
-                ImageDataAccess.DeleteImage(recipeData.recipe_id, true);
+                await ImageDataAccess.DeleteImage(recipeData.recipe_id, true);
                 throw err;
             }
             
 
         } catch (error) {
-            console.log(error)
             throw new AppError("Cannot upload the recipe");
         }
     }
@@ -328,6 +404,38 @@ class RecipeDataAccess{
                 throw new ClientError('Permission to edit the recipe is not granted', 401)
             }
 
+
+            const regEx_onlyLettersAndSpace = /^[A-Za-z\s]*$/;
+
+            const ingsExistQuery = `DO $$ 
+                DECLARE
+                    ing_ids TEXT[] := ARRAY[${
+                        recipeData.ingredients_id.map(
+                            (id) => {
+                                if(regEx_onlyLettersAndSpace.test(id))
+                                    return `'${id}'`
+                                throw new ClientError('One or multiple recipes do not exist', 400);
+                            }
+                        ).join(',')
+                    }];
+                    ing_id TEXT;
+                BEGIN
+                    FOREACH ing_id IN ARRAY ing_ids 
+                    LOOP
+                        IF NOT EXISTS (SELECT 1 FROM "cosinaschema2"."Ingredient" WHERE ing_id = ingredient_name LIMIT 1) THEN
+                            RAISE EXCEPTION 'Ingredient ID % does not exist in the table', ing_id;
+                    END IF;
+                END LOOP;
+            END $$;`;
+
+            try{
+                await prisma.$executeRawUnsafe(ingsExistQuery);
+            }
+            catch(err){
+                throw new ClientError("One or multiple ingredients couldn't be found", 400);
+            }
+
+
             const preservedData = {
                 recipe_id: recipeData.recipe_id,
                 date: recipe.date,
@@ -335,11 +443,15 @@ class RecipeDataAccess{
                 votes: recipe.votes
             }
 
-
             await RecipeDataAccess.deleteRecipeById(recipeData.recipe_id, userId, false);
 
             if(!!recipeData.image){
                 try{
+                    try{
+                        await ImageDataAccess.DeleteImage(Id, true);
+                    }
+                    catch(err){}
+
                     ImageDataAccess.StoreImage(recipeData.recipe_id, recipeData.image.split(',')[1], true);
                 }catch(err){
                     throw AppError("Cannot upload update recipe image", 500);
@@ -366,33 +478,10 @@ class RecipeDataAccess{
 
             const all_tags = [...new Set(recipeData.tags.concat(recipeData.title.split(' ')))];
 
-            const regEx_onlyLettersAndSpace = /^[A-Za-z\s]*$/;
-
-            const ingsExistQuery = `DO $$ 
-                DECLARE
-                    ing_ids TEXT[] := ARRAY[${
-                        recipeData.ingredients_id.map(
-                            (id) => {
-                                if(regEx_onlyLettersAndSpace.test(id))
-                                    return `'${id}'`
-                                throw new ClientError('One or multiple recipes do not exist', 400);
-                            }
-                        ).join(',')
-                    }];
-                    ing_id TEXT;
-                BEGIN
-                    FOREACH ing_id IN ARRAY ing_ids 
-                    LOOP
-                        IF NOT EXISTS (SELECT 1 FROM "cosinaschema2"."Ingredient" WHERE ing_id = ingredient_name LIMIT 1) THEN
-                            RAISE EXCEPTION 'Ingredient ID % does not exist in the table', ing_id;
-                    END IF;
-                END LOOP;
-            END $$;`;
 
 
 
             await prisma.$transaction([
-                prisma.$executeRawUnsafe(ingsExistQuery),
                 prisma.$executeRaw`
                     INSERT INTO "cosinaschema2"."Recipe" (
                             recipe_id,
@@ -483,16 +572,64 @@ class RecipeDataAccess{
                             )
                         )
                     )}
+                `,
+
+                prisma.$executeRaw`
+
+                    WITH RecipeNutrition AS (
+                            SELECT
+                                ingrec.recipeid,
+                                SUM(ingrec.valueingram * ing.calories) / SUM(ingrec.valueingram) AS calories,
+                                SUM(ingrec.valueingram * ing.total_fat) / SUM(ingrec.valueingram) AS total_fat,
+                                SUM(ingrec.valueingram * ing.sat_fat) / SUM(ingrec.valueingram) AS sat_fat,
+                                SUM(ingrec.valueingram * ing.protein) / SUM(ingrec.valueingram) AS protein,
+                                SUM(ingrec.valueingram * ing.sodium) / SUM(ingrec.valueingram) AS sodium,
+                                SUM(ingrec.valueingram * ing.potassium) / SUM(ingrec.valueingram) AS potassium,
+                                SUM(ingrec.valueingram * ing.cholesterol) / SUM(ingrec.valueingram) AS cholesterol,
+                                SUM(ingrec.valueingram * ing.carbohydrates) / SUM(ingrec.valueingram) AS carbohydrates,
+                                SUM(ingrec.valueingram * ing.fiber) / SUM(ingrec.valueingram) AS fiber,
+                                SUM(ingrec.valueingram * ing.sugar) / SUM(ingrec.valueingram) AS sugar
+                            FROM
+                                "cosinaschema2"."IngredientsOnRecipes" AS ingrec
+                            INNER JOIN
+                                "cosinaschema2"."Ingredient" AS ing ON ing.ingredient_name = ingrec.ingid
+                            ${
+                                Prisma.sql`WHERE 
+                                    ingrec.recipeid = ${recipe_id}
+                                `
+                            }
+                            GROUP BY
+                                ingrec.recipeid
+                        )
+                        UPDATE "cosinaschema2"."Recipe" AS recipe
+                        SET
+                            calories = RecipeNutrition.calories,
+                            total_fat = RecipeNutrition.total_fat,
+                            sat_fat = RecipeNutrition.sat_fat,
+                            protein = RecipeNutrition.protein,
+                            sodium = RecipeNutrition.sodium,
+                            potassium = RecipeNutrition.potassium,
+                            cholesterol = RecipeNutrition.cholesterol,
+                            carbohydrates = RecipeNutrition.carbohydrates,
+                            fiber = RecipeNutrition.fiber,
+                            sugar = RecipeNutrition.sugar
+                        FROM
+                            RecipeNutrition
+                        WHERE
+                            recipe.recipe_id = RecipeNutrition.recipeid
+                            AND EXISTS (
+                                SELECT 1
+                                FROM "cosinaschema2"."IngredientsOnRecipes" AS ingrec
+                                WHERE ingrec.recipeid = recipe.recipe_id
+                            )
+
                 `
             ]);
 
             return recipe_id;
 
-
-
         }
         catch(error){
-            console.log(error)
             throw new AppError("Cannot edit the recipe");
         }
     }
@@ -512,24 +649,36 @@ class RecipeDataAccess{
                     cookingtime_min,
                     views,
                     votes,
-                    recipe.imageurl as recipe_imgurl,
+                    recipe.thumbnail_imageurl as recipe_imgurl,
+
+                    recipe.calories as r_calories, 
+                    recipe.total_fat as r_total_fat,
+                    recipe.sat_fat as r_sat_fat,
+                    recipe.protein as r_protein,
+                    recipe.sodium as r_sodium,
+                    recipe.potassium as r_potassium,
+                    recipe.cholesterol as r_cholesterol,
+                    recipe.carbohydrates as r_carbohydrates,
+                    recipe.fiber as r_fiber,
+                    recipe.sugar as r_sugar,
+
                     array_agg(presentedstring) presentedstring,
                     array_agg(unit) as unit,
                     array_agg(value) as value,
                     array_agg(valueingram) as valueingram,
                     array_agg(ingredient_name) as ingredient_name,
-                    array_agg(calories) as calories,
-                    array_agg(total_fat) as total_fat,
-                    array_agg(sat_fat) as sat_fat,
-                    array_agg(protein) as protein,
-                    array_agg(sodium) as sodium,
-                    array_agg(potassium) as potassium,
-                    array_agg(cholesterol) as cholestrol,
-                    array_agg(carbohydrates) as carbohydrates,
-                    array_agg(fiber) as fiber,
-                    array_agg(sugar) as sugar,
+                    array_agg(ing.calories) as calories,
+                    array_agg(ing.total_fat) as total_fat,
+                    array_agg(ing.sat_fat) as sat_fat,
+                    array_agg(ing.protein) as protein,
+                    array_agg(ing.sodium) as sodium,
+                    array_agg(ing.potassium) as potassium,
+                    array_agg(ing.cholesterol) as cholestrol,
+                    array_agg(ing.carbohydrates) as carbohydrates,
+                    array_agg(ing.fiber) as fiber,
+                    array_agg(ing.sugar) as sugar,
                     array_agg(category) category,
-                    array_agg(ing.imageurl) as ingredient_imgurls,
+                    array_agg(ing.thumbnail_imageurl) as ingredient_imgurls,
 
                     recipe.votes as votes
             
@@ -562,8 +711,7 @@ class RecipeDataAccess{
             return Recipes.map((Recipe) => 
                 (
                     { 
-                        ...Recipe, 
-                        image: ImageDataAccess.GetImage(Recipe.recipe_id, true)
+                        ...Recipe
                     }
                 )
             );
@@ -625,24 +773,36 @@ class RecipeDataAccess{
                     cookingtime_min,
                     views,
                     votes,
-                    recipe.imageurl as recipe_imgurl,
+                    recipe.thumbnail_imageurl as recipe_imgurl,
+
+                    recipe.calories as r_calories, 
+                    recipe.total_fat as r_total_fat,
+                    recipe.sat_fat as r_sat_fat,
+                    recipe.protein as r_protein,
+                    recipe.sodium as r_sodium,
+                    recipe.potassium as r_potassium,
+                    recipe.cholesterol as r_cholesterol,
+                    recipe.carbohydrates as r_carbohydrates,
+                    recipe.fiber as r_fiber,
+                    recipe.sugar as r_sugar,
+
                     array_agg(presentedstring) presentedstring,
                     array_agg(unit) as unit,
                     array_agg(value) as value,
                     array_agg(valueingram) as valueingram,
                     array_agg(ingredient_name) as ingredient_name,
-                    array_agg(calories) as calories,
-                    array_agg(total_fat) as total_fat,
-                    array_agg(sat_fat) as sat_fat,
-                    array_agg(protein) as protein,
-                    array_agg(sodium) as sodium,
-                    array_agg(potassium) as potassium,
-                    array_agg(cholesterol) as cholestrol,
-                    array_agg(carbohydrates) as carbohydrates,
-                    array_agg(fiber) as fiber,
-                    array_agg(sugar) as sugar,
+                    array_agg(ing.calories) as calories,
+                    array_agg(ing.total_fat) as total_fat,
+                    array_agg(ing.sat_fat) as sat_fat,
+                    array_agg(ing.protein) as protein,
+                    array_agg(ing.sodium) as sodium,
+                    array_agg(ing.potassium) as potassium,
+                    array_agg(ing.cholesterol) as cholestrol,
+                    array_agg(ing.carbohydrates) as carbohydrates,
+                    array_agg(ing.fiber) as fiber,
+                    array_agg(ing.sugar) as sugar,
                     array_agg(category) category,
-                    array_agg(ing.imageurl) as ingredient_imgurls,
+                    array_agg(ing.thumbnail_imageurl) as ingredient_imgurls,
                     orderedByIng.c as relevance,
 
                     recipe.votes as votes
@@ -677,14 +837,12 @@ class RecipeDataAccess{
             return Recipes.map((Recipe) => 
                 (
                     { 
-                        ...Recipe, 
-                        image: ImageDataAccess.GetImage(Recipe.recipe_id, true)
+                        ...Recipe
                     }
                 )
             );
 
         } catch (error) {
-            console.log(error);
             throw new AppError("Cannot retrieve recipes");
         }
 
@@ -757,24 +915,36 @@ class RecipeDataAccess{
                     cookingtime_min,
                     views,
                     votes,
-                    recipe.imageurl as recipe_imgurl,
+                    recipe.thumbnail_imageurl as recipe_imgurl,
+
+                    recipe.calories as r_calories, 
+                    recipe.total_fat as r_total_fat,
+                    recipe.sat_fat as r_sat_fat,
+                    recipe.protein as r_protein,
+                    recipe.sodium as r_sodium,
+                    recipe.potassium as r_potassium,
+                    recipe.cholesterol as r_cholesterol,
+                    recipe.carbohydrates as r_carbohydrates,
+                    recipe.fiber as r_fiber,
+                    recipe.sugar as r_sugar,
+
                     array_agg(presentedstring) presentedstring,
                     array_agg(unit) as unit,
                     array_agg(value) as value,
                     array_agg(valueingram) as valueingram,
                     array_agg(ingredient_name) as ingredient_name,
-                    array_agg(calories) as calories,
-                    array_agg(total_fat) as total_fat,
-                    array_agg(sat_fat) as sat_fat,
-                    array_agg(protein) as protein,
-                    array_agg(sodium) as sodium,
-                    array_agg(potassium) as potassium,
-                    array_agg(cholesterol) as cholestrol,
-                    array_agg(carbohydrates) as carbohydrates,
-                    array_agg(fiber) as fiber,
-                    array_agg(sugar) as sugar,
+                    array_agg(ing.calories) as calories,
+                    array_agg(ing.total_fat) as total_fat,
+                    array_agg(ing.sat_fat) as sat_fat,
+                    array_agg(ing.protein) as protein,
+                    array_agg(ing.sodium) as sodium,
+                    array_agg(ing.potassium) as potassium,
+                    array_agg(ing.cholesterol) as cholestrol,
+                    array_agg(ing.carbohydrates) as carbohydrates,
+                    array_agg(ing.fiber) as fiber,
+                    array_agg(ing.sugar) as sugar,
                     array_agg(category) category,
-                    array_agg(ing.imageurl) as ingredient_imgurls,
+                    array_agg(ing.thumbnail_imageurl) as ingredient_imgurls,
                     recipe.votes as votes,
                     orderedByIng.rc,
                     orderedByIng.N
@@ -812,15 +982,13 @@ class RecipeDataAccess{
             return Recipes.map((Recipe) => 
                 (
                     { 
-                        ...Recipe, 
-                        image: ImageDataAccess.GetImage(Recipe.recipe_id, true)
+                        ...Recipe
                     }
                 )
             );
 
 
         } catch (error) {
-            console.log(error);
             throw new AppError("Cannot retrieve recipes");
         }
 
@@ -915,24 +1083,36 @@ class RecipeDataAccess{
                     cookingtime_min,
                     views,
                     votes,
-                    recipe.imageurl as recipe_imgurl,
+                    recipe.thumbnail_imageurl as recipe_imgurl,
+
+                    recipe.calories as r_calories, 
+                    recipe.total_fat as r_total_fat,
+                    recipe.sat_fat as r_sat_fat,
+                    recipe.protein as r_protein,
+                    recipe.sodium as r_sodium,
+                    recipe.potassium as r_potassium,
+                    recipe.cholesterol as r_cholesterol,
+                    recipe.carbohydrates as r_carbohydrates,
+                    recipe.fiber as r_fiber,
+                    recipe.sugar as r_sugar,
+
                     array_agg(presentedstring) presentedstring,
                     array_agg(unit) as unit,
                     array_agg(value) as value,
                     array_agg(valueingram) as valueingram,
                     array_agg(ingredient_name) as ingredient_name,
-                    array_agg(calories) as calories,
-                    array_agg(total_fat) as total_fat,
-                    array_agg(sat_fat) as sat_fat,
-                    array_agg(protein) as protein,
-                    array_agg(sodium) as sodium,
-                    array_agg(potassium) as potassium,
-                    array_agg(cholesterol) as cholestrol,
-                    array_agg(carbohydrates) as carbohydrates,
-                    array_agg(fiber) as fiber,
-                    array_agg(sugar) as sugar,
+                    array_agg(ing.calories) as calories,
+                    array_agg(ing.total_fat) as total_fat,
+                    array_agg(ing.sat_fat) as sat_fat,
+                    array_agg(ing.protein) as protein,
+                    array_agg(ing.sodium) as sodium,
+                    array_agg(ing.potassium) as potassium,
+                    array_agg(ing.cholesterol) as cholestrol,
+                    array_agg(ing.carbohydrates) as carbohydrates,
+                    array_agg(ing.fiber) as fiber,
+                    array_agg(ing.sugar) as sugar,
                     array_agg(category) category,
-                    array_agg(ing.imageurl) as ingredient_imgurls,
+                    array_agg(ing.thumbnail_imageurl) as ingredient_imgurls,
                     recipe.votes as votes
             
                 FROM 
@@ -974,14 +1154,12 @@ class RecipeDataAccess{
             return Recipes.map((Recipe) => 
                 (
                     { 
-                        ...Recipe, 
-                        image: ImageDataAccess.GetImage(Recipe.recipe_id, true)
+                        ...Recipe
                     }
                 )
             );
 
         } catch (error) {
-            console.log(error);
             throw new AppError("Cannot retrieve recipes");
         }
 
@@ -1024,7 +1202,6 @@ class RecipeDataAccess{
 
 
         } catch (error) {
-            console.log(error);
             throw new AppError("Cannot retrieve recipes");
         }
 
@@ -1032,7 +1209,6 @@ class RecipeDataAccess{
 
     static async voteRecipe(userId, recipeId, vote) {
         try{
-            console.log(userId);
 
             const recipeExists = `DO $$ 
                 DECLARE
@@ -1089,7 +1265,6 @@ class RecipeDataAccess{
             ])
         }
         catch(err){
-            console.log(err)
             throw new AppError("Cannot delete the recipe");
         }
 

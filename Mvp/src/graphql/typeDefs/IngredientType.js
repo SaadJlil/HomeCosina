@@ -22,7 +22,7 @@ const GetIngredientByIdType = `#graphql
 
         #ingredient data
         ingredient_name: String!
-        imageurl: String
+        ing_imageurl: String
         calories: Float!
         total_fat: Float!
         sat_fat: Float!
@@ -34,7 +34,6 @@ const GetIngredientByIdType = `#graphql
         fiber: Float!
         sugar: Float!
         category: Float!
-        image: String
 
     }
 `
@@ -45,7 +44,7 @@ const SearchIngredientType = `#graphql
 
         #ingredient data
         ingredient_name: String!
-        imageurl: String
+        ing_imageurl: String
         calories: Float!
         total_fat: Float!
         sat_fat: Float!
@@ -57,7 +56,6 @@ const SearchIngredientType = `#graphql
         fiber: Float!
         sugar: Float!
         category: Float!
-        image: String
 
     }
 `

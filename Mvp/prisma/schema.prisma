@@ -19,7 +19,8 @@ model Recipe {
   cookingtime_min Int
   views Int @default(0)
   votes Int @default(0)
-  imageurl String?
+  main_imageurl String?
+  thumbnail_imageurl String?
   ingredients IngredientsOnRecipes[]
 
   calories Float?
@@ -32,8 +33,6 @@ model Recipe {
   carbohydrates Float?
   fiber Float?
   sugar Float?
-
-
 
 
   tag_nb Int
@@ -55,7 +54,8 @@ model Ingredient {
   fiber Float
   sugar Float
   category String
-  imageurl String
+  main_imageurl String?
+  thumbnail_imageurl String?
   recipes IngredientsOnRecipes[]
 }
 

@@ -26,7 +26,7 @@ class IngredientDataAccess{
                     fiber,
                     sugar,
                     category,
-                    imageurl
+                    main_imageurl as ing_imageurl
                 FROM 
                     "cosinaschema2"."Ingredient" as ing
                 ${
@@ -38,8 +38,7 @@ class IngredientDataAccess{
             }
 
             return { 
-                ...Ingredient[0], 
-                image: ImageDataAccess.GetImage(Ingredient_name, false)
+                ...Ingredient[0]
             };
 
         } catch (error) {
@@ -69,7 +68,7 @@ class IngredientDataAccess{
                     ing.fiber,
                     ing.sugar,
                     ing.category,
-                    ing.imageurl
+                    ing.thumbnail_imageurl as ing_imageurl
 
                 FROM "cosinaschema2"."Tag" as tag
 
@@ -103,25 +102,6 @@ class IngredientDataAccess{
 
             `
 
-/*
-
-
-
-
-                ORDER BY levenshtein(ing.ingredient_name, ${Query})
-                ${
-                    Prisma.sql`WHERE 
-                        tag.type = ${type}
-                            AND
-                        tag.ts @@ phraseto_tsquery('english', ${Query})
-                    `
-                }
-
-                ORDER BY CHAR_LENGTH(ing.ingredient_name) 
-*/
-
-
-
             if(Ingredients.length === 0){
                 throw new ClientError(`No ingredients found`, 404);
             }
@@ -131,7 +111,6 @@ class IngredientDataAccess{
                 (
                     { 
                         ...Ingredient, 
-                        image: ImageDataAccess.GetImage(Ingredient.ingredient_name, false)
                     }
                 )
             );

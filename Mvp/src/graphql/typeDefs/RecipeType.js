@@ -12,6 +12,22 @@ const Recipe = `#graphql
         votes: Int!
         imageurl: String
         vote: Int! 
+
+        #nutrition
+        r_calories: Float!
+        r_total_fat: Float!
+        r_sat_fat: Float!
+        r_protein: Float!
+        r_sodium: Float!
+        r_potassium: Float!
+        r_cholestrol: Float!
+        r_carbohydrates: Float!
+        r_fiber: Float!
+        r_sugar: Float!
+
+
+
+
     }
 `
 
@@ -40,6 +56,20 @@ const GetRecipeByIdType = `#graphql
         #user data
         userid: ID!
 
+
+        #nutrition
+        r_calories: Float!
+        r_total_fat: Float!
+        r_sat_fat: Float!
+        r_protein: Float!
+        r_sodium: Float!
+        r_potassium: Float!
+        r_cholestrol: Float!
+        r_carbohydrates: Float!
+        r_fiber: Float!
+        r_sugar: Float!
+
+
         #recipe data
         #recipe_id: ID!
         recipe_id: ID!
@@ -50,9 +80,8 @@ const GetRecipeByIdType = `#graphql
         cookingtime_min: Int!
         views: Int!
         votes: Int!
-        recipe_imgurl: [String]
+        recipe_imgurl: String
 
-        image: String
 
 
     }
@@ -83,6 +112,21 @@ const GetUserRecipesType = `#graphql
         #user data
         userid: ID!
 
+
+        #nutrition
+        r_calories: Float!
+        r_total_fat: Float!
+        r_sat_fat: Float!
+        r_protein: Float!
+        r_sodium: Float!
+        r_potassium: Float!
+        r_cholestrol: Float!
+        r_carbohydrates: Float!
+        r_fiber: Float!
+        r_sugar: Float!
+
+
+
         #recipe data
         #recipe_id: ID!
         recipe_id: ID!
@@ -93,9 +137,8 @@ const GetUserRecipesType = `#graphql
         cookingtime_min: Int!
         views: Int!
         votes: Int!
-        recipe_imgurl: [String]
+        recipe_imgurl: String
 
-        image: String
     }
 `
 
@@ -167,6 +210,19 @@ const SearchRecipesType = `#graphql
         #user data
         userid: ID!
 
+        #nutrition
+        r_calories: Float!
+        r_total_fat: Float!
+        r_sat_fat: Float!
+        r_protein: Float!
+        r_sodium: Float!
+        r_potassium: Float!
+        r_cholestrol: Float!
+        r_carbohydrates: Float!
+        r_fiber: Float!
+        r_sugar: Float!
+
+
         #recipe data
         #recipe_id: ID!
         recipe_id: ID!
@@ -179,7 +235,6 @@ const SearchRecipesType = `#graphql
         votes: Int!
         recipe_imgurl: [String]
 
-        image: String
 
         vote: Int!
 
