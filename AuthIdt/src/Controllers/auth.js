@@ -11,7 +11,9 @@ const AppError = require('./../Exceptions/AppError');
 const UserDataAccess = require('./../DataAccess/UserDataAccess');
 const successResponse = require('./../Contracts/successResponse');
 const { verify } = require('jsonwebtoken');
-
+const sharp = require('sharp');
+const imageConfig = require('./../Config/image');
+const ImageDataAccess = require('./../DataAccess/ImageDataAccess');
 
 
 class AuthController {
@@ -21,25 +23,50 @@ class AuthController {
 
         //basically firebase
         const userData = await AuthService.SignUpUserService(req.body.email, req.body.password);
+        const userId = userData.user.uid;
 
-        const userId = userData.user.uid
-        const profilePic = req.body.profilepic
-
-        if(!!profilePic){
+        if(!!req.body.profilepic){
           try{
-            UserService.StoreProfilePic(userId, profilePic.split(',')[1]);
+
+            const profilePic = req.body.profilepic;
+
+            const base64Image = profilePic.split(',')[1]; 
+
+            const buffer = Buffer.from(base64Image, 'base64');
+            
+            const thumbnailImage_ = await sharp(buffer)
+                .resize({ width: imageConfig.thumbnailWidth, height: imageConfig.thumbnailWidth})
+                .toBuffer();
+            
+            
+            
+            const thumbnailImage = thumbnailImage_.toString('base64');
+
+            const mainImage_ = await sharp(buffer)
+                .resize({ width: imageConfig.mainWidth, height: imageConfig.mainlWidth})
+                .toBuffer();
+            
+            const mainImage = mainImage_.toString('base64');
+
+
+            var mainImageUrl = '';
+            var thumbnailImageUrl = '';
+
+            mainImageUrl = await ImageDataAccess.StoreImage(userId, mainImage, false);
+            thumbnailImageUrl = await ImageDataAccess.StoreImage(userId, thumbnailImage, true);
+            
           }catch(err){
-            await AuthService.DeleteUserAccount(userId);
-            throw AppError("Cannot upload profile picture", 500);
+              throw AppError("Cannot upload image", 500);
           }
         }
+
 
         const userEmail = req.body.email
         const username = req.body.username
         const bio = req.body.bio
 
         //Add use to the postgres database (no passowrd etc...) 
-        await UserService.AddUserDatabase(username, userEmail, userId, bio)
+        await UserService.AddUserDatabase(username, userEmail, userId, bio, mainImageUrl, thumbnailImageUrl)
 
         const refreshToken = await TokenService.createRefreshToken(userId);
         const accessToken = await TokenService.createAccessToken(userId, refreshToken.id);

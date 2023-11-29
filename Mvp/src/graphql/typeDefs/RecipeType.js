@@ -170,7 +170,6 @@ const EditRecipeType = `#graphql
         title: String!
         link: [String!]
         cookingtime_min: Int!
-        recipe_imageurl: String
 
         ingredients_id: [ID!]!
 

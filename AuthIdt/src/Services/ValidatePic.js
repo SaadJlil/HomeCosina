@@ -1,7 +1,7 @@
 const ClientError = require('./../Exceptions/ClientError');
 const base64 = require('base64-js');
 const sizeOf = require('image-size');
-
+const imageConfig = require('./../Config/image');
 
 
 
@@ -14,7 +14,7 @@ function picValid(EncodedImage){
 
         const dimensions = sizeOf(Buffer.from(EncodedImage.split(',')[1], 'base64'));
 
-        if(dimensions.width > 400 || dimensions.height > 400){
+        if(dimensions.width < imageConfig.mainWidth || dimensions.height < imageConfig.mainHeight){
             throw new Error();
         }
 

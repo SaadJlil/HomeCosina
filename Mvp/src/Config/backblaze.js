@@ -31,7 +31,6 @@ const initializeB2 = async () => {
         await b2.authorize();
 
         const bucketId = process.env.BUCKET_ID;
-        const userFolder = process.env.USERFOLDER;
         const recipeFolder = process.env.RECIPEFOLDER;
         const ingredientFolder = process.env.INGREDIENTFOLDER;
         const bucketUrl = process.env.BUCKET_URL;
@@ -46,7 +45,6 @@ const initializeB2 = async () => {
             bucketId: bucketId,
             authToken: upld_object.data.authorizationToken,
             recipeFolder: recipeFolder,
-            userFolder: userFolder,
             ingredientFolder: ingredientFolder,
             bucketUrl: bucketUrl ,
             thumbnailFolder: thumbnailFolder,

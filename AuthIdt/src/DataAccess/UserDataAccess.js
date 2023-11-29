@@ -81,13 +81,15 @@ class UserDataAccess{
     }
 
 
-    static async CreateUser(uid, Email, Username, Bio){
+    static async CreateUser(uid, Email, Username, Bio, mainImageUrl, thumbnailImageUrl){
         await prisma.user.create({
             data: {
                 id: uid, 
                 email: Email,
                 username: Username,
-                bio: typeof Bio === 'undefined' ? "": Bio
+                bio: typeof Bio === 'undefined' ? "": Bio,
+                main_imageurl: mainImageUrl,
+                thumbnail_imageurl: thumbnailImageUrl
             },
         });
     }

@@ -26,6 +26,7 @@ class RecipeDataAccess{
                     views,
                     votes,
                     recipe.main_imageurl as recipe_imgurl,
+                    recipe.thumbnail_imageurl as thumbnail_recipe_imgurl,
 
 
                     recipe.calories as r_calories, 
@@ -114,33 +115,38 @@ class RecipeDataAccess{
     static async createRecipe(recipeData, userId) {
         try {
 
-
-            var base64Image = recipeData.image.split(',')[1]; 
-
-            const buffer = Buffer.from(base64Image, 'base64');
-            
-
-            base64Image = await sharp(buffer)
-                .resize({ width: imageConfig.thumbnailWidth, height: imageConfig.thumbnailWidth})
-                .toBuffer();
-            
-            
-            
-            const thumbnailImage = base64Image.toString('base64');
-
-
-            const recipe_id = uuidv4();
             var mainImageUrl = '';
             var thumbnailImageUrl = '';
 
+            const recipe_id = uuidv4();
+
             if(!!recipeData.image){
                 try{
-                    mainImageUrl = await ImageDataAccess.StoreImage(recipe_id, recipeData.image, true, false);
+
+                    const base64Image = recipeData.image.split(',')[1]; 
+
+
+                    const buffer = Buffer.from(base64Image, 'base64');
+                    
+
+                    const thumbnail_= await sharp(buffer)
+                        .resize({ width: imageConfig.thumbnailWidth, height: imageConfig.thumbnailWidth})
+                        .toBuffer();
+                    
+                    
+                    
+                    const thumbnailImage = thumbnail_.toString('base64');
+
+
+                    mainImageUrl = await ImageDataAccess.StoreImage(recipe_id, base64Image, true, false);
                     thumbnailImageUrl = await ImageDataAccess.StoreImage(recipe_id, thumbnailImage, true, true);
+
                 }catch(err){
                     throw AppError("Cannot upload image", 500);
                 }
             }
+
+            console.log(mainImageUrl);
 
             try{
 
@@ -336,6 +342,7 @@ class RecipeDataAccess{
             
 
         } catch (error) {
+            console.log(error);
             throw new AppError("Cannot upload the recipe");
         }
     }
@@ -398,12 +405,13 @@ class RecipeDataAccess{
     static async editRecipeById(recipeData, userId) {
         try{
 
-            const recipe = await RecipeDataAccess.getRecipeById(recipeData.recipe_id);
+            const recipe_id = recipeData.recipe_id;
+
+            const recipe = await RecipeDataAccess.getRecipeById(recipe_id);
 
             if(recipe.userid !== userId){
                 throw new ClientError('Permission to edit the recipe is not granted', 401)
             }
-
 
             const regEx_onlyLettersAndSpace = /^[A-Za-z\s]*$/;
 
@@ -437,13 +445,15 @@ class RecipeDataAccess{
 
 
             const preservedData = {
-                recipe_id: recipeData.recipe_id,
+                recipe_id: recipe_id,
                 date: recipe.date,
                 views: recipe.views,
-                votes: recipe.votes
+                votes: recipe.votes,
+                main_imageurl: recipe.recipe_imgurl,
+                thumbnail_imageurl: recipe.thumbnail_recipe_imgurl
             }
 
-            await RecipeDataAccess.deleteRecipeById(recipeData.recipe_id, userId, false);
+            await RecipeDataAccess.deleteRecipeById(recipe_id, userId, false);
 
             if(!!recipeData.image){
                 try{
@@ -452,7 +462,29 @@ class RecipeDataAccess{
                     }
                     catch(err){}
 
-                    ImageDataAccess.StoreImage(recipeData.recipe_id, recipeData.image.split(',')[1], true);
+                    const base64Image = recipeData.image.split(',')[1]; 
+
+                    const buffer = Buffer.from(base64Image, 'base64');
+                    
+
+                    const thumbnail_ = await sharp(buffer)
+                        .resize({ width: imageConfig.thumbnailWidth, height: imageConfig.thumbnailWidth})
+                        .toBuffer();
+                    
+                    
+                    
+                    const thumbnailImage = thumbnail_.toString('base64');
+
+                    if(!!recipeData.image){
+                        try{
+                            //console.log(recipe_id);
+                            preservedData.main_imageurl = await ImageDataAccess.StoreImage(recipe_id, base64Image, true, false);
+                            preservedData.thumbnail_imageurl = await ImageDataAccess.StoreImage(recipe_id, thumbnailImage, true, true);
+                        }catch(err){
+                            throw AppError("Cannot upload image", 500);
+                        }
+                    }
+
                 }catch(err){
                     throw AppError("Cannot upload update recipe image", 500);
                 }
@@ -460,7 +492,7 @@ class RecipeDataAccess{
 
 
 
-            const recipe_id = recipeData.recipe_id;
+
             
             const type = 'r'
             const measurements = [];
@@ -487,7 +519,6 @@ class RecipeDataAccess{
                             recipe_id,
                             title,
                             userid,
-                            imageurl,
                             steps,
                             cookingtime_min,
                             link,
@@ -495,14 +526,15 @@ class RecipeDataAccess{
                             views,
                             votes,
                             tag_nb,
-                            ing_nb
+                            ing_nb,
+                            main_imageurl,
+                            thumbnail_imageurl
                         )
                     VALUES (
                             ${Prisma.join([   
                                 Prisma.sql`${recipe_id}`,
                                 Prisma.sql`${recipeData.title}`,
                                 Prisma.sql`${userId}`,
-                                Prisma.sql`${recipeData.recipe_imgurl}`,
                                 Prisma.sql`ARRAY[${Prisma.join(recipeData.steps)}]`,
                                 Prisma.sql`${recipeData.cookingtime_min}`,
                                 Prisma.sql`ARRAY[${Prisma.join(recipeData.link)}]`,
@@ -510,7 +542,9 @@ class RecipeDataAccess{
                                 Prisma.sql`${preservedData.views}`,
                                 Prisma.sql`${preservedData.votes}`,
                                 Prisma.sql`${all_tags.length}`,
-                                Prisma.sql`${measurements.length}`
+                                Prisma.sql`${measurements.length}`,
+                                Prisma.sql`${preservedData.main_imageurl}`,
+                                Prisma.sql`${preservedData.thumbnail_imageurl}`
                         ])}
                         )
                 `,
@@ -626,10 +660,12 @@ class RecipeDataAccess{
                 `
             ]);
 
+
             return recipe_id;
 
         }
         catch(error){
+            console.log(error);
             throw new AppError("Cannot edit the recipe");
         }
     }
