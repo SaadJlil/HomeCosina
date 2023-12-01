@@ -232,7 +232,7 @@ const SearchRecipesType = `#graphql
         cookingtime_min: Int!
         views: Int!
         votes: Int!
-        recipe_imgurl: [String]
+        recipe_imgurl: String
 
 
         vote: Int!

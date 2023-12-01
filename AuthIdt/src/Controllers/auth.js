@@ -118,6 +118,7 @@ class AuthController {
         const accessToken = await TokenService.createAccessToken(uid, refreshToken.split("::")[0]);
 
         res.json(new successResponse({ accessToken, refreshToken }));
+
     }
 
     @TryCatchErrorsDecorator

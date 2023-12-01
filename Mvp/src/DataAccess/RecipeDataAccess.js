@@ -146,7 +146,6 @@ class RecipeDataAccess{
                 }
             }
 
-            console.log(mainImageUrl);
 
             try{
 
@@ -342,7 +341,6 @@ class RecipeDataAccess{
             
 
         } catch (error) {
-            console.log(error);
             throw new AppError("Cannot upload the recipe");
         }
     }
@@ -477,7 +475,6 @@ class RecipeDataAccess{
 
                     if(!!recipeData.image){
                         try{
-                            //console.log(recipe_id);
                             preservedData.main_imageurl = await ImageDataAccess.StoreImage(recipe_id, base64Image, true, false);
                             preservedData.thumbnail_imageurl = await ImageDataAccess.StoreImage(recipe_id, thumbnailImage, true, true);
                         }catch(err){
@@ -665,7 +662,6 @@ class RecipeDataAccess{
 
         }
         catch(error){
-            console.log(error);
             throw new AppError("Cannot edit the recipe");
         }
     }
