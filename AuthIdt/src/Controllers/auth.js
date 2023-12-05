@@ -20,10 +20,16 @@ class AuthController {
 
     @TryCatchErrorsDecorator
     static async signup(req, res, next) {
+        var userData, userId;
 
-        //basically firebase
-        const userData = await AuthService.SignUpUserService(req.body.email, req.body.password);
-        const userId = userData.user.uid;
+        try{
+          //basically firebase
+          userData = await AuthService.SignUpUserService(req.body.email, req.body.password);
+          userId = userData.user.uid;
+
+        }catch(error){
+          throw new AppError("We're currently experiencing server issues while processing account sign-ups. Please attempt again in a few minutes.", 500);
+        }
 
         if(!!req.body.profilepic){
           try{
@@ -73,8 +79,7 @@ class AuthController {
 
         const confirmationLink = emailConfig.emailConfirmationLink + await TokenService.createEmailToken(userId);
         EmailService.sendConfirmationEmail(userEmail, username, confirmationLink);
-
-        res.json(new successResponse({accessToken, refreshToken}));
+        res.json(new successResponse({accessToken, refreshToken, userId}));
     }
 
 
@@ -111,13 +116,13 @@ class AuthController {
     static async signin(req, res, next) {
 
         const user = await AuthService.SignInUserService(req.body.email, req.body.password);
-        const uid = user.user.uid;
+        const userId = user.user.uid;
 
 
-        const refreshToken = await TokenService.createRefreshToken(uid);
-        const accessToken = await TokenService.createAccessToken(uid, refreshToken.split("::")[0]);
+        const refreshToken = await TokenService.createRefreshToken(userId);
+        const accessToken = await TokenService.createAccessToken(userId, refreshToken.split("::")[0]);
 
-        res.json(new successResponse({ accessToken, refreshToken }));
+        res.json(new successResponse({ accessToken, refreshToken, userId}));
 
     }
 

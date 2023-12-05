@@ -4,3 +4,10 @@ AuthIdt/.env
 AuthIdt/homecosina-862e2-firebase-adminsdk-v6d15-7153de3f81.json
 Mvp/dataset/
 Mvp/.env
+DatabaseInitialization/ingComplete.json
+DatabaseInitialization/newIngredients.json
+DatabaseInitialization/recipeUpgraded.json
+DatabaseInitialization/ingredients_weight.csv
+DatabaseInitialization/.recingDatabaseSeed.sh.swo
+
+
