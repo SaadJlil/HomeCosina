@@ -6,6 +6,8 @@ read -rp "Would you like to seed the database (This procedure takes up to an hou
 userId=$(./userDatabaseMigration.sh)
 userDatabaseMigration_exitStatus=$?
 
+./CreateAuthDatabase.sh
+./CreateMvpDatabase.sh
 
 if [ $userDatabaseMigration_exitStatus -eq 0 ]; then
     ./recIngDatabaseSeed.sh "$userId" "$seedBool"
