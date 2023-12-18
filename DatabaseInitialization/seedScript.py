@@ -101,7 +101,6 @@ for element in elements:
     try:
         curs_obj.execute(execute_string)
     except Exception as e :
-        print(e)
         exit()
         con.rollback()
 
@@ -159,7 +158,6 @@ with open('recipeUpgraded.json') as f:
 elements = []
 
 
-import psycopg2
 
 
 con = psycopg2.connect(DATABASE_URL)
@@ -202,7 +200,6 @@ for element in elements_ing:
         tags = list(dict.fromkeys(tags))
 
     except Exception as e:
-        print(e)
         exit()
 
     for tag in tags: 
@@ -220,7 +217,6 @@ for element in elements_ing:
         curs_obj.execute(execute_string)
 
     except Exception as e :
-        print(e)
         exit()
         #con.rollback()
             
@@ -481,9 +477,6 @@ for element in elements_ing:
         try:
             curs_obj.execute(execute_string)
         except Exception as e :
-            print(execute_string)
-            import time
-            time.sleep(100000)
             con.rollback()
             
 
