@@ -16,7 +16,7 @@ sleep 5
 
 
 npm_pid=$!
-node_pid=$(lsof -t -i :3000)
+node_pid=$(lsof -t -i :$PORT)
 
 
 cd ./../../DatabaseInitialization/

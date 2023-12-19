@@ -65,19 +65,24 @@ EXPOSE $Mvp_PORT
 
 
 WORKDIR /HomeCosina/AuthIdt
+RUN npm install -g pm2
 RUN npm install -force
 
 WORKDIR /HomeCosina/Mvp
+RUN npm install -g pm2
 RUN npm install -force
 
-WORKDIR /HomeCosina
 
 ENV DEBIAN_FRONTEND=dialog
 
-RUN ./DatabaseInitialization/databaseInitialization.sh
+WORKDIR /HomeCosina/DatabaseInitialization
 
-CMD pm2-runtime start ./Mvp/src/index.js && \
-    pm2-runtime start ./AuthIdt/src/index.js
-                                                                                   79,1          Bot
+RUN chmod +x ./*.sh
+ENTRYPOINT ["./DatabaseInitialization/databaseInitialization.sh"]
+
+WORKDIR /HomeCosina
+
+#CMD pm2-runtime start ./Mvp/src/index.js && \
+#    pm2-runtime start ./AuthIdt/src/index.js
 
 

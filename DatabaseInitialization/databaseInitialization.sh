@@ -1,7 +1,22 @@
 #!/bin/bash
 
-read -rp "Would you like to seed the database (This procedure takes up to an hour)? (yes/no): " seedBool;
+# Boolean variable to track if -s flag was used
+seedBool=false
 
+# Loop through the arguments passed to the script
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+    -s) # If -s flag is detected, set seedBool to true
+      seedBool=true
+      ;;
+    *) # Other flags or arguments can be handled here if needed
+      ;;
+  esac
+  shift # Move to the next argument
+done
+
+#for the docker file, get rid of this line if run independently
+cd /HomeCosina/DatabaseInitialization
 
 userId=$(./userDatabaseMigration.sh)
 userDatabaseMigration_exitStatus=$?
