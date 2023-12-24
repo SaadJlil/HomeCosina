@@ -1,8 +1,8 @@
 #!/usr/bin/expect -f
  
-cd ./../AuthIdt/prisma/
+cd /HomeCosina/AuthIdt/prisma/
 
-spawn sudo npx prisma migrate dev --name userMigration
+spawn npx prisma migrate dev --name userMigration
 
 expect -re ".*" {
     send "y\r"
@@ -21,4 +21,3 @@ expect {
     eof 
 }
 
-cd ./../../DatabaseInitialization/

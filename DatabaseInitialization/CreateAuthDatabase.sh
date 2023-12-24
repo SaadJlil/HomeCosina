@@ -1,4 +1,4 @@
-source ./../AuthIdt/.env
+source /HomeCosina/AuthIdt/.env
 
 
 

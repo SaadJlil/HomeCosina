@@ -1,25 +1,22 @@
 #!/bin/bash
 
-source ./../AuthIdt/.env
+source /HomeCosina/AuthIdt/.env
 
-sudo rm -rf ./../AuthIdt/prisma/migrations;
-sudo ./userExpect.sh 
+sudo rm -rf /HomeCosina/AuthIdt/prisma/migrations;
+/HomeCosina/DatabaseInitialization/userExpect.sh 
 
-cd ./../AuthIdt/prisma/
+cd /HomeCosina/AuthIdt/prisma/
 
 #sudo npx prisma migrate dev --name userMigration
-sudo npx prisma migrate deploy
+npx prisma migrate deploy
 
-npm start >/dev/null 2>&1 &
-sleep 5
-
-
+cd /HomeCosina/AuthIdt
+#npm start >/dev/null 2>&1 &
+nodemon /HomeCosina/AuthIdt/src/index.js --exec babel-node &
+sleep 10
 
 npm_pid=$!
 node_pid=$(lsof -t -i :$PORT)
-
-
-cd ./../../DatabaseInitialization/
 
 
 authResponse=$(curl -s -X POST http://$HOST:$PORT/api/signup \
@@ -30,16 +27,18 @@ authResponse=$(curl -s -X POST http://$HOST:$PORT/api/signup \
     "username": "'"$SEED_USERNAME"'"
 }')
 
-
-
-kill $npm_pid
-kill $node_pid
-
-
 if [ $? -ne 0 ]; then
     #echo "Error: Curl command failed"
     exit 11
 fi
+
+
+kill $npm_pid
+
+if [ -n "$node_pid" ]; then
+    kill $node_pid
+fi
+
 
 
 success=$(echo "$authResponse" | grep -o '"success":[^,}]*' | awk -F ':' '{print $2}' | tr -d '"{}, ')

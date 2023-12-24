@@ -10,7 +10,7 @@ import sys
 from dotenv import dotenv_values
 
 # Load environment variables from the .env file
-env_variables = dotenv_values("./../Mvp/.env")
+env_variables = dotenv_values("/HomeCosina/Mvp/.env")
 
 # Access the variables from the dictionary
 DATABASE_URL = env_variables.get("SEEDING_DATABASE_URL")
@@ -32,10 +32,10 @@ def appostrophe_thing(string):
 dic_ing = {} 
 
 
-with open('newIngredients.json') as f:
+with open('/HomeCosina/DatabaseInitialization/newIngredients.json') as f:
     elements_ing = json.load(f) 
  
-with open('ingComplete.json') as f:
+with open('/HomeCosina/DatabaseInitialization/ingComplete.json') as f:
     elements_ing1 = json.load(f) 
 
 
@@ -152,7 +152,7 @@ def cookingTime(directions):
 
 dic_ing = {} 
 
-with open('recipeUpgraded.json') as f:
+with open('/HomeCosina/DatabaseInitialization/recipeUpgraded.json') as f:
     elements_ing = json.load(f) 
 
 elements = []
@@ -238,11 +238,11 @@ print("")
 
 unit_ing = {}
 
-with open('newIngredients.json') as f:
+with open('/HomeCosina/DatabasesInitialization/newIngredients.json') as f:
     ingsData = json.load(f)
 
 
-with open('./ingredients_weight.csv', 'r') as file:
+with open('/HomeCosina/DatabaseInitialization/ingredients_weight.csv', 'r') as file:
     csv_reader = csv.reader(file)
     
     for row in csv_reader:
@@ -426,7 +426,7 @@ def cookingTime(directions):
     return sum(cumul)
 
  
-with open('recipeUpgraded.json') as f:
+with open('/HomeCosina/DatabaseInitialization/recipeUpgraded.json') as f:
     data = json.load(f)
  
 

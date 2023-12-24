@@ -1,4 +1,4 @@
-source ./../Mvp/.env
+source /HomeCosina/Mvp/.env
 
 
 

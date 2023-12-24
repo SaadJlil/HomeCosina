@@ -15,17 +15,17 @@ while [[ "$#" -gt 0 ]]; do
   shift # Move to the next argument
 done
 
-#for the docker file, get rid of this line if run independently
-cd /HomeCosina/DatabaseInitialization
+sudo service postgresql start
 
-userId=$(./userDatabaseMigration.sh)
+/HomeCosina/DatabaseInitialization/CreateAuthDatabase.sh
+/HomeCosina/DatabaseInitialization/CreateMvpDatabase.sh
+
+userId=$(/HomeCosina/DatabaseInitialization/userDatabaseMigration.sh)
 userDatabaseMigration_exitStatus=$?
 
-./CreateAuthDatabase.sh
-./CreateMvpDatabase.sh
 
 if [ $userDatabaseMigration_exitStatus -eq 0 ]; then
-    ./recIngDatabaseSeed.sh "$userId" "$seedBool"
+    /HomeCosina/DatabaseInitialization/recIngDatabaseSeed.sh "$userId" "$seedBool"
     exit_status=$? 
     
     if [ $exit_status -eq 0 ]; then

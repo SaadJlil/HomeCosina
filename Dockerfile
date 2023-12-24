@@ -2,6 +2,8 @@
 FROM ubuntu:22.04
 
 
+EXPOSE 443
+
 # Set working directory
 WORKDIR /HomeCosina
 
@@ -17,10 +19,13 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     curl \
-    postgresql
+    postgresql \
+    sudo \
+    lsof \
+    expect
 
 
-RUN service postgresql start
+#RUN service postgresql start
 
 # Symlink python3 to python (optional)
 RUN ln -s /usr/bin/python3 /usr/bin/python
@@ -29,6 +34,7 @@ RUN pip3 install openpyxl
 RUN pip3 install uuid 
 RUN pip3 install psycopg2-binary
 RUN pip3 install progress 
+RUN pip3 install requests
 RUN pip3 install python-dotenv
 
 #install node
@@ -44,6 +50,7 @@ RUN npm --version
 
 # Install npx globally (if needed)
 RUN npm install -g npx --force
+RUN npm i -g nodemon
 
 # Copy your application files into the container
 COPY . /HomeCosina
@@ -78,11 +85,10 @@ ENV DEBIAN_FRONTEND=dialog
 WORKDIR /HomeCosina/DatabaseInitialization
 
 RUN chmod +x ./*.sh
-ENTRYPOINT ["./DatabaseInitialization/databaseInitialization.sh"]
+#ENTRYPOINT ["./DatabaseInitialization/databaseInitialization.sh"]
 
 WORKDIR /HomeCosina
 
 #CMD pm2-runtime start ./Mvp/src/index.js && \
 #    pm2-runtime start ./AuthIdt/src/index.js
-
 

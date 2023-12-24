@@ -1,8 +1,8 @@
 #!/usr/bin/expect -f
  
-cd ./../Mvp/prisma/
+cd /HomeCosina/Mvp/prisma/
 
-spawn sudo npx prisma migrate dev --name recIngMigration;
+spawn npx prisma migrate dev --name recIngMigration;
 
 expect -re ".*" {
     send "y\r"
@@ -21,4 +21,3 @@ expect {
     eof 
 }
 
-cd ./../../DatabaseInitialization/
