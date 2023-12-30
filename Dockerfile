@@ -30,12 +30,12 @@ RUN apt-get update && apt-get install -y \
 # Symlink python3 to python (optional)
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
-RUN pip3 install openpyxl 
-RUN pip3 install uuid 
-RUN pip3 install psycopg2-binary
-RUN pip3 install progress 
-RUN pip3 install requests
-RUN pip3 install python-dotenv
+RUN pip3 install openpyxl \
+                 uuid \
+                 psycopg2-binary \
+                 progress \
+                 requests \
+                 python-dotenv \
 
 #install node
 ENV NODE_VERSION=20.5.1
@@ -56,19 +56,13 @@ RUN npm i -g nodemon
 COPY . /HomeCosina
 
 
-#env variable: Mvp microservice
-RUN Auth_PORT=$(grep '^PORT=' ./AuthIdt/.env | cut -d '=' -f 2) && \
-    echo "Exposing port $Auth_PORT"
+# Placeholders for extracted ports
+ARG AUTH_PORT_ARG
+ARG MVP_PORT_ARG
 
-
-#env variable: AuthIdt microservice
-RUN Mvp_PORT=$(grep '^PORT=' ./Mvp/.env | cut -d '=' -f 2) && \
-    echo "Exposing port $Mvp_PORT"
-
-# Expose ports using the extracted variables
-EXPOSE $Auth_PORT
-EXPOSE $Mvp_PORT
-
+# Expose ports using arguments
+EXPOSE $AUTH_PORT_ARG
+EXPOSE $MVP_PORT_ARG
 
 
 WORKDIR /HomeCosina/AuthIdt
@@ -85,7 +79,7 @@ ENV DEBIAN_FRONTEND=dialog
 WORKDIR /HomeCosina/DatabaseInitialization
 
 RUN chmod +x ./*.sh
-#ENTRYPOINT ["./DatabaseInitialization/databaseInitialization.sh"]
+ENTRYPOINT ["./DatabaseInitialization/databaseInitialization.sh"]
 
 WORKDIR /HomeCosina
 

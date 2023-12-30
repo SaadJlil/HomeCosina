@@ -13,7 +13,8 @@ npx prisma migrate deploy
 cd /HomeCosina/AuthIdt
 #npm start >/dev/null 2>&1 &
 nodemon /HomeCosina/AuthIdt/src/index.js --exec babel-node &
-sleep 10
+
+sleep 20
 
 npm_pid=$!
 node_pid=$(lsof -t -i :$PORT)

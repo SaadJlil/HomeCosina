@@ -18,7 +18,7 @@ DATABASE_URL = env_variables.get("SEEDING_DATABASE_URL")
 if len(sys.argv) > 1:
         userId = sys.argv[1]
 else:
-    raise("No userId has been received by the seedScript")
+    raise Exception("No userId has been received by the seedScript")
 
 
 def appostrophe_thing(string): 
