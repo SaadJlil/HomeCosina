@@ -13,6 +13,10 @@ USER root
 ENV DEBIAN_FRONTEND=noninteractive
 
 
+
+# Symlink python3 to python (optional)
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
 # Update package lists and install essential packages
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -22,20 +26,22 @@ RUN apt-get update && apt-get install -y \
     postgresql \
     sudo \
     lsof \
-    expect
+    expect \
+    vim
 
 
 #RUN service postgresql start
 
 # Symlink python3 to python (optional)
-RUN ln -s /usr/bin/python3 /usr/bin/python
+#****** don't know ******#
+#RUN ln -s /usr/bin/python3 /usr/bin/python
 
 RUN pip3 install openpyxl \
-                 uuid \
-                 psycopg2-binary \
-                 progress \
-                 requests \
-                 python-dotenv \
+                uuid \
+                psycopg2-binary \
+                progress \
+                python-dotenv \
+                requests
 
 #install node
 ENV NODE_VERSION=20.5.1
@@ -51,6 +57,7 @@ RUN npm --version
 # Install npx globally (if needed)
 RUN npm install -g npx --force
 RUN npm i -g nodemon
+
 
 # Copy your application files into the container
 COPY . /HomeCosina
@@ -82,7 +89,3 @@ RUN chmod +x ./*.sh
 ENTRYPOINT ["./DatabaseInitialization/databaseInitialization.sh"]
 
 WORKDIR /HomeCosina
-
-#CMD pm2-runtime start ./Mvp/src/index.js && \
-#    pm2-runtime start ./AuthIdt/src/index.js
-

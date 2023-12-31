@@ -62,4 +62,9 @@ fi
 
 
 
+cd /HomeCosina/AuthIdt
+nodemon /HomeCosina/AuthIdt/src/index.js --exec babel-node --harmony  &
+
+cd /HomeCosina/Mvp
+nodemon /HomeCosina/Mvp/src/index.js --exec babel-node --harmony
 
