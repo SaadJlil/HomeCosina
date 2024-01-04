@@ -32,6 +32,7 @@ if [ $userDatabaseMigration_exitStatus -eq 0 ]; then
         echo "recIngDatabaseSeed executed successfully"
     else
         echo "recIngDatabaseSeed failed or wasn't executed"
+    	exit 1
     fi
 
 else
@@ -58,6 +59,7 @@ else
 
 
     echo "userDatabaseMigration failed or wasn't executed"
+    exit 1
 fi
 
 
