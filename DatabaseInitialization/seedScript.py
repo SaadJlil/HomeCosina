@@ -238,7 +238,7 @@ print("")
 
 unit_ing = {}
 
-with open('/HomeCosina/DatabasesInitialization/newIngredients.json') as f:
+with open('/HomeCosina/DatabaseInitialization/newIngredients.json') as f:
     ingsData = json.load(f)
 
 

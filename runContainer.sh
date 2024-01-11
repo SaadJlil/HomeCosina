@@ -8,6 +8,16 @@ MVP_PORT=$(grep '^PORT=' ./Mvp/.env | cut -d '=' -f 2)
 
 
 sudo apt install nginx -y
+sudo apt install certbot python3-certbot-nginx -y
+sudo apt install ufw -y
+
+sudo ufw disable
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow ssh
+sudo ufw allow "Nginx HTTPS"
+sudo ufw enable
+
 
 nginxScript="
 server {
@@ -18,7 +28,7 @@ server {
 
         index index.html index.htm index.nginx-debian.html;
 
-        server_name _;
+        server_name homecosina.com www.homecosina.com;
 
         location / {
                 try_files \$uri \$uri/ =404;
@@ -62,6 +72,8 @@ sudo chmod 777 /etc/nginx/sites-available/default;
 sudo echo "$nginxScript" > /etc/nginx/sites-available/default;
 sudo systemctl restart nginx;
 
+sudo certbot --nginx -d homecosina.com -d www.homecosina.com
+
 #Only responds to localhost connections (Cons: specification of host ports)
 sudo docker system prune -a &&
 sudo docker build \
@@ -69,7 +81,7 @@ sudo docker build \
 sudo docker run \
   -p 127.0.0.1:3000:$AUTH_PORT \
   -p 127.0.0.1:5000:$MVP_PORT \
-  -it homecosina -s &
+  -it homecosina #-s
 
 
 

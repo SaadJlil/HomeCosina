@@ -23,16 +23,17 @@ sudo service postgresql start
 userId=$(/HomeCosina/DatabaseInitialization/userDatabaseMigration.sh)
 userDatabaseMigration_exitStatus=$?
 
+userId=$(echo -e "$userId" | awk -v RS="\n" 'END{print}')
 
 if [ $userDatabaseMigration_exitStatus -eq 0 ]; then
     /HomeCosina/DatabaseInitialization/recIngDatabaseSeed.sh "$userId" "$seedBool"
-    exit_status=$? 
-    
+    exit_status=$?
+
     if [ $exit_status -eq 0 ]; then
         echo "recIngDatabaseSeed executed successfully"
     else
         echo "recIngDatabaseSeed failed or wasn't executed"
-    	exit 1
+        exit 1
     fi
 
 else
@@ -46,8 +47,8 @@ else
        echo "ERROR: the user created is already present in the firebase database. Please delete the user from firebase and rerun the seedScript."
       ;;
 
-      13) 
-	echo "ERROR: couldn't auth with the seed user"
+      13)
+        echo "ERROR: couldn't auth with the seed user"
       ;;
 
       *)
