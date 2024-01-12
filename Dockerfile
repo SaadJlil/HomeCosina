@@ -87,5 +87,3 @@ WORKDIR /HomeCosina/DatabaseInitialization
 
 RUN chmod +x ./*.sh
 ENTRYPOINT ["./DatabaseInitialization/databaseInitialization.sh"]
-
-WORKDIR /HomeCosina
