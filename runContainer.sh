@@ -28,7 +28,7 @@ server {
 
         index index.html index.htm index.nginx-debian.html;
 
-        server_name homecosina.com www.homecosina.com;
+        server_name $DOMAIN www.$DOMAIN;
 
         location / {
                 try_files \$uri \$uri/ =404;

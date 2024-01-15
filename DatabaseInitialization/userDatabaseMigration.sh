@@ -30,6 +30,7 @@ authResponse=$(curl -s -X POST http://$HOST:$PORT/api/signup \
 
 if [ $? -ne 0 ]; then
     #echo "Error: Curl command failed"
+    kill $npm_pid
     exit 11
 fi
 
@@ -40,7 +41,8 @@ if [ -n "$node_pid" ]; then
     kill $node_pid
 fi
 
-
+confirm_admin_email="UPDATE \"cosinaschema1\".\"User\" SET emailconfirmed = TRUE WHERE email = '$SEED_EMAIL';"
+sudo psql "$SEEDING_DATABASE_URL" -c "$confirm_admin_email";
 
 success=$(echo "$authResponse" | grep -o '"success":[^,}]*' | awk -F ':' '{print $2}' | tr -d '"{}, ')
 
@@ -51,7 +53,7 @@ else
     errorMessage=$(echo "$authResponse" | grep -o '"message":"[^"]*' | awk -F ':' '{print $2}' | tr -d '"')
     if [ "$errorMessage" == "" ]; then
     	#echo "ERROR: the user created is already present in the firebase database. Please delete the user from firebase and rerun the seedScript."
-	exit 12
+	    exit 12
     else
     	#echo "ERROR: $errorMessage"
     	exit 13
