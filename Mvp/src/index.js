@@ -50,13 +50,10 @@ app.use(
     rootValue: graphqlResolvers,
     graphiql: true,
     customFormatErrorFn: (error) => {
-      const errorStructure = errorHandler(error)
+      const errorStructure = errorHandler(error.originalError)
       
-
-      return {
-        info: errorStructure
-        // You can include additional error information as needed
-      };
+      return errorStructure;
+      
     }
   })
 );
