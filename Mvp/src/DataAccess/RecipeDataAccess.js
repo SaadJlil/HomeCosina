@@ -155,7 +155,7 @@ class RecipeDataAccess{
                 for (let i = 0; i < recipeData.ingredients_id.length; i++) {
                     measurements.push({
                         ing_id: recipeData.ingredients_id[i],
-                        presentedstring: '',
+                        presentedstring: `${recipeData.values[i]} ${recipeData.units[i]}`,
                         unit: recipeData.units[i],
                         value: recipeData.values[i],
                         valueingram: recipeData.valuesingram[i]
