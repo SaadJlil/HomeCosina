@@ -1,8 +1,8 @@
 # HomeCocina API
 
-Welcome to the HomeCocina API! Elevate your culinary experience with our Recipe Search API. Whether you're a cooking enthusiast or just seeking a delightful meal, HomeCocina allows you to explore and discover recipes tailored to your preferences. Search based on ingredients, calories, fat, sugar, and more to find the perfect recipe for your taste buds.
+Welcome to HomeCocina API—a versatile tool for culinary enthusiasts and researchers alike. Our sophisticated Recipe Search API caters to specific preferences, allowing you to discover diverse recipes based on ingredients, calories, and more, refining your culinary experience.
 
-Embark on a culinary adventure with HomeCocina API and bring the joy of home-cooked meals to your fingertips. Let's get started on a flavorful journey!
+Join us on this culinary adventure, where HomeCocina not only redefines how you approach exceptional meals but also contributes valuable insights to the evolving world of culinary research.
 
 ## Summary
 
