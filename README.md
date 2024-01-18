@@ -4,6 +4,20 @@ Welcome to the HomeCocina API! Elevate your culinary experience with our Recipe 
 
 Embark on a culinary adventure with HomeCocina API and bring the joy of home-cooked meals to your fingertips. Let's get started on a flavorful journey!
 
+## Summary
+
+### Technology Stack
+Backend, scripting, API architecture, authentication, server, and deployment.
+
+### Get Started
+Steps to install the API in your server.
+
+### Endpoints
+Authentication, User Info, Main API (graphql), Auto-complete Suggestions, and Search.
+
+### Status Codes
+Status codes sent by the API
+
 ## Technology Stack
 
 HomeCocina API is built with a modern and robust technology stack, ensuring reliability, scalability, and ease of development.
@@ -36,7 +50,15 @@ HomeCocina API is built with a modern and robust technology stack, ensuring reli
 
 ## Get Started:
 
-Using Linux would make it easier to run the API (running the runContainer.sh file). However, it is possible to run the API using both Windows and MacOs
+Using Linux would make it easier to run the API (running the runContainer.sh file). However, it is possible to run the API using both Windows and MacOs.
+
+### Clone the Repository
+Start by cloning the HomeCocina repository to your local machine:
+
+```bash
+git clone https://github.com/SaadJlil/HomeCosina
+cd HomeCocina
+```
 
 ## Docker
 ### Windows:
