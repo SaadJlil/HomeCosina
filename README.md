@@ -6,17 +6,13 @@ Join us on this culinary adventure, where HomeCocina not only redefines how you 
 
 ## Summary
 
-- **Technology Stack:**
-Backend, scripting, API architecture, authentication, server, and deployment.
+- **Technology Stack:** Backend, scripting, API architecture, authentication, server, and deployment.
 
-- **Get Started:**
-Steps to install the API in your server.
+- **Get Started:** Steps to install the API in your server.
 
-- **Endpoints:**
-Authentication, User Info, Main API (graphql), Auto-complete Suggestions, and Search.
+- **Endpoints:** Authentication, User Info, Main API (graphql), Auto-complete Suggestions, and Search.
 
-- **Status Codes:**
-Status codes sent by the API
+- **Status Codes:** Status codes sent by the API.
 
 ## Technology Stack
 
