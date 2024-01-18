@@ -71,7 +71,6 @@ const GetRecipeByIdType = `#graphql
 
 
         #recipe data
-        #recipe_id: ID!
         recipe_id: ID!
         steps: [String!]!
         date: String!

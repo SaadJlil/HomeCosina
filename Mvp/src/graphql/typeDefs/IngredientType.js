@@ -29,7 +29,7 @@ const GetIngredientByIdType = `#graphql
         protein: Float!
         sodium: Float!
         potassium: Float!
-        cholestrol: Float!
+        cholesterol: Float!
         carbohydrates: Float!
         fiber: Float!
         sugar: Float!
