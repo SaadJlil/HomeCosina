@@ -6,6 +6,9 @@ const config = require("./../Config/app");
 
 
 module.exports = function(err) {
+    if(err === undefined){
+            err = new AppError();
+    }
     const status = err.code || 500;
     const httpError = httpErrors(status);
     const errorMessage = err.errorMessage || "Unknown error";
