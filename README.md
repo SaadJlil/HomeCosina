@@ -413,7 +413,7 @@ fetch(graphqlEndpoint, {
     console.log(createdRecipe);
   })
   .catch(error){
-    console.log(data);
+    console.log(error);
   }
 ```
 
